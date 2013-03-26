@@ -29,6 +29,7 @@
 #include "RenderEffect.h"
 
 #include <memory>
+#include <array>
 
 namespace Rubik {
 
@@ -57,25 +58,53 @@ public:
     }
 
     float getXAngle() const {
-        return this->cubeArray[0][0][0]->getXAngle();
+        return this->cubeArray[0]->getXAngle();
     }
 
     float getYAngle() const {
-        return this->cubeArray[1][1][1]->getYAngle();
+        return this->cubeArray[0]->getYAngle();
     }
 
     float getZAngle() const {
-        return this->cubeArray[1][1][1]->getZAngle();
+        return this->cubeArray[0]->getZAngle();
     }
 
-    void rotate(const Math::Vec3& vector, float angle);
+    void rotate(const Math::Vec3& vector, float angle) {
+        for (auto& subCube: this->cubeArray) {
+            subCube->rotate(vector, angle);
+        }
+    }
 
-    void render(const Math::Mat4& mvp);
+    std::shared_ptr<Opengl::RenderEffect>& getEffect() {
+        return this->cubeArray[0]->getEffect();
+    }
+
+    void setEffect(const std::shared_ptr<Opengl::RenderEffect>& effect) {
+        for (auto& subCube: this->cubeArray) {
+            subCube->setEffect(effect);
+        }
+    }
+
+    std::shared_ptr<Opengl::Texture>& getTexture() {
+        return this->cubeArray[0]->getTexture();
+    }
+
+    void setTexture(const std::shared_ptr<Opengl::Texture>& texture) {
+        for (auto& subCube: this->cubeArray) {
+            subCube->setTexture(texture);
+        }
+    }
+
+    void render() {
+        for (auto& subCube: this->cubeArray) {
+            subCube->render();
+        }
+    }
+
     void animate(float frameTime);
 
 private:
-    std::unique_ptr<Opengl::CubeMesh> cubeArray[3][3][3];
-    std::shared_ptr<Opengl::RenderEffect> commonEffect;
+    std::array<std::unique_ptr<Opengl::CubeMesh>, 27> cubeArray;
 
     Math::Vec3 verticalAxis;
     Math::Vec3 horizontalAxis;

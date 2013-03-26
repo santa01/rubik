@@ -23,6 +23,7 @@
 #include "Rubik.h"
 #include "Logger.h"
 #include "Vec3.h"
+#include "ResourceManager.h"
 
 #include <SDL2/SDL.h>
 #include <cmath>
@@ -37,6 +38,14 @@ Rubik::Rubik() {
     this->width = 800;
     this->height = 600;
     this->frameTime = 0.0f;
+
+    for (auto& buttonState: this->mouseButtonStates) {
+        buttonState = false;
+    }
+
+    for (auto& keyState: this->keyboardButtonStates) {
+        keyState = false;
+    }
 }
 
 int Rubik::exec() {
@@ -58,6 +67,9 @@ int Rubik::exec() {
                 case SDL_MOUSEMOTION:
                     if (this->mouseButtonStates[SDL_BUTTON_RIGHT]) {
                         this->rotateCube(Math::Vec3(event.motion.xrel, event.motion.yrel, 0.0f));
+                    }
+                    if (this->mouseButtonStates[SDL_BUTTON_LEFT]) {
+                        this->rotateSection(Math::Vec3(event.motion.x, event.motion.y, 0.0f));
                     }
                     break;
 
@@ -96,13 +108,20 @@ bool Rubik::setUp() {
         return false;
     }
 
-    this->camera = std::unique_ptr<Game::Camera>(new Game::Camera());
-    this->camera->setAspectRatio(this->width / (this->height / 1.0f));
-    this->camera->setFov(75.0f);
-    this->camera->setPosition(-2.0f, 2.0f, -6.0f);
-    this->camera->lookAt(2.0f, -2.0f, 6.0f);
+    this->camera.setAspectRatio(this->width / (this->height / 1.0f));
+    this->camera.setFov(75.0f);
+    this->camera.setPosition(-2.0f, 2.0f, -6.0f);
+    this->camera.lookAt(2.0f, -2.0f, 6.0f);
 
     this->cube = std::unique_ptr<Game::Cube>(new Game::Cube());
+    this->cube->setTexture(Utils::ResourceManager::getInstance().makeTexture("textures/subcube.png"));
+
+    this->defaultEffect = Utils::ResourceManager::getInstance().makeEffect("shaders/default.shader");
+    this->defaultEffect->setUniform("textureSampler", 0);
+
+    this->pickupEffect = Utils::ResourceManager::getInstance().makeEffect("shaders/pickup.shader");
+    this->frameBuffer = std::unique_ptr<Opengl::FrameBuffer>(new Opengl::FrameBuffer(this->width, this->height));
+
     return true;
 }
 
@@ -193,6 +212,16 @@ void Rubik::rotateCube(const Math::Vec3& direction) {
     }
 }
 
+void Rubik::rotateSection(const Math::Vec3& position) {
+    this->frameBuffer->bind();
+
+    float data;
+    glReadPixels(position.get(Math::Vec3::X), this->height - position.get(Math::Vec3::Y),
+            1, 1, GL_RED, GL_FLOAT, &data);
+
+    int subCubeId = data * 100.0f;
+}
+
 void Rubik::update() {
     if (this->keyboardButtonStates[SDL_SCANCODE_ESCAPE]) {
         this->running = false;
@@ -202,11 +231,27 @@ void Rubik::update() {
 }
 
 void Rubik::render() {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    this->cube->render(this->camera->getProjection() *
-                       this->camera->getRotation() *
-                       this->camera->getTranslation());
+    if (this->defaultEffect != nullptr) {
+        this->defaultEffect->setUniform("mvp", this->camera.getProjection() *
+                                               this->camera.getRotation() *
+                                               this->camera.getTranslation());
+        this->cube->setEffect(this->defaultEffect);
+        this->cube->render();
+    }
+
+    this->frameBuffer->bind();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    if (this->pickupEffect != nullptr) {
+        this->pickupEffect->setUniform("mvp", this->camera.getProjection() *
+                                              this->camera.getRotation() *
+                                              this->camera.getTranslation());
+        this->cube->setEffect(this->pickupEffect);
+        this->cube->render();
+    }
 
     SDL_GL_SwapWindow(this->window);
 }

@@ -5,24 +5,18 @@
     uniform mat4 lw;
 
     layout(location = 0) in vec3 vertexPosition;
-    layout(location = 1) in vec2 vertexUv;
-
-    smooth out vec2 fragmentUv;
 
     void main () {
-        fragmentUv = vertexUv;
         gl_Position = mvp * lw * vec4(vertexPosition, 1.0f);
     }
 #endif
 
 #ifdef TYPE_FRAGMENT
-    uniform sampler2D textureSampler;
-
-    smooth in vec2 fragmentUv;
+    uniform int id;
 
     out vec4 fragmentColor;
 
     void main() {
-        fragmentColor = texture(textureSampler, fragmentUv);
+        fragmentColor = vec4(id / 100.0f, 0.0f, 0.0f, 0.0f);
     }
 #endif

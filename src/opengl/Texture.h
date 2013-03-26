@@ -38,13 +38,24 @@ class Texture: public Common::NonCopyable {
 public:
     Texture() {
         glGenTextures(1, &this->texture);
+        glBindTexture(GL_TEXTURE_2D, this->texture);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+
+    Texture(int width, int height):
+            Texture() {
+        glBindTexture(GL_TEXTURE_2D, this->texture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        glBindTexture(GL_TEXTURE_2D, 0);
     }
 
     ~Texture() {
         glDeleteTextures(1, &this->texture);
     }
 
-    GLuint getTextureHandle() const {
+    GLuint getHandle() const {
         return this->texture;
     }
 

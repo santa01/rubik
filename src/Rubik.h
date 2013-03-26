@@ -27,6 +27,7 @@
 #include "Vec3.h"
 #include "Cube.h"
 #include "NonCopyable.h"
+#include "FrameBuffer.h"
 
 #include <SDL2/SDL_video.h>
 #include <SDL2/SDL_scancode.h>
@@ -52,6 +53,7 @@ private:
     bool initOpenGL();
 
     void rotateCube(const Math::Vec3& direction);
+    void rotateSection(const Math::Vec3& position);
 
     void update();
     void render();
@@ -60,7 +62,11 @@ private:
     SDL_GLContext context;
 
     std::unique_ptr<Game::Cube> cube;
-    std::unique_ptr<Game::Camera> camera;
+    std::unique_ptr<Opengl::FrameBuffer> frameBuffer;
+    std::shared_ptr<Opengl::RenderEffect> defaultEffect;
+    std::shared_ptr<Opengl::RenderEffect> pickupEffect;
+
+    Game::Camera camera;
 
     int width;
     int height;

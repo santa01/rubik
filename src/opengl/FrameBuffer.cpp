@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-#include "RenderEffect.h"
+#include "FrameBuffer.h"
 
 namespace Rubik {
 

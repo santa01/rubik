@@ -23,56 +23,21 @@
 #include "Cube.h"
 #include "ResourceManager.h"
 
-#include <cmath>
-#include <utility>
-
 namespace Rubik {
 
 namespace Game {
 
 Cube::Cube() {
-    auto commonTexture = Utils::ResourceManager::getInstance().makeTexture("textures/subcube.png");
-    this->commonEffect = Utils::ResourceManager::getInstance().makeEffect("shaders/default.shader");
-
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            for (int k = 0; k < 3; k++) {
-                auto subCube = std::unique_ptr<Opengl::CubeMesh>(new Opengl::CubeMesh());
-                subCube->setEffect(this->commonEffect);
-                subCube->setTexture(commonTexture);
-                subCube->scale(0.5f);
-                subCube->setPosition(i - 1, j - 1, k - 1);
-                this->cubeArray[i][j][k] = std::move(subCube);
-            }
-        }
+    for (int i = 0; i < static_cast<int>(this->cubeArray.size()); i++) {
+        auto subCube = std::unique_ptr<Opengl::CubeMesh>(new Opengl::CubeMesh());
+        subCube->setPosition(i / 9 - 1, i % 9 / 3 - 1, i % 9 % 3 - 1);
+        subCube->setId(i);
+        subCube->scale(0.5f);
+        this->cubeArray[i] = std::move(subCube);
     }
 
     this->yaw(180.0f);
     this->state = STATE_IDLE;
-}
-
-void Cube::rotate(const Math::Vec3& vector, float angle) {
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            for (int k = 0; k < 3; k++) {
-                this->cubeArray[i][j][k]->rotate(vector, angle);
-            }
-        }
-    }
-}
-
-void Cube::render(const Math::Mat4& mvp) {
-    if (this->commonEffect) {
-        this->commonEffect->setMVP(mvp);
-    }
-
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            for (int k = 0; k < 3; k++) {
-                this->cubeArray[i][j][k]->render();
-            }
-        }
-    }
 }
 
 void Cube::animate(float frameTime) {

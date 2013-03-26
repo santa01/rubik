@@ -112,11 +112,19 @@ public:
         return this->scaling.get(2, 2);
     }
 
+    int getId() const {
+        return this->id;
+    }
+
+    void setId(int id) {
+        this->id = id;
+    }
+
     std::shared_ptr<RenderEffect>& getEffect() {
         return this->effect;
     }
 
-    void setEffect(std::shared_ptr<RenderEffect>& effect) {
+    void setEffect(const std::shared_ptr<RenderEffect>& effect) {
         this->effect = effect;
     }
 
@@ -124,7 +132,7 @@ public:
         return this->texture;
     }
 
-    void setTexture(std::shared_ptr<Texture>& texture) {
+    void setTexture(const std::shared_ptr<Texture>& texture) {
         this->texture = texture;
     }
 
@@ -146,6 +154,7 @@ private:
     float xAngle;
     float yAngle;
     float zAngle;
+    int id;
 
     GLuint buffers[2];
     GLuint vao;

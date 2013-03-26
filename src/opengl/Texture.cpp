@@ -31,21 +31,14 @@ void Texture::load(SDL_Surface* image) {
         return;
     }
 
-    SDL_Surface* source = this->convertToRGBA(image);
+    SDL_Surface* source = (image->format->BytesPerPixel != 4) ? this->convertToRGBA(image) : image;
     if (source == nullptr) {
         return;
     }
 
-    GLenum format = GL_RGBA;
-    if (source->format->Rmask > source->format->Bmask) {
-        format = GL_BGRA;
-    }
-
     glBindTexture(GL_TEXTURE_2D, this->texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, source->w, source->h,
-            0, format, GL_UNSIGNED_BYTE, source->pixels);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, source->w, source->h, 0,
+            (source->format->Rmask > source->format->Bmask) ? GL_BGRA : GL_RGBA, GL_UNSIGNED_BYTE, source->pixels);
     glGenerateMipmap(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -55,10 +48,6 @@ void Texture::load(SDL_Surface* image) {
 }
 
 SDL_Surface* Texture::convertToRGBA(SDL_Surface* image) {
-    if (image->format->BytesPerPixel == 4) {
-        return image;
-    }
-
     SDL_Surface* newSource = SDL_CreateRGBSurface(SDL_SWSURFACE, image->w, image->h, 32,
             0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000);
     if (newSource == nullptr) {

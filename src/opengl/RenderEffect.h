@@ -24,12 +24,16 @@
 #define RENDEREFFECT_H
 
 #include "Mat4.h"
+#include "Mat3.h"
+#include "Vec4.h"
 #include "Vec3.h"
 #include "NonCopyable.h"
 #include "ShaderLoader.h"
 
 #define GL_GLEXT_PROTOTYPES
 #include <SDL2/SDL_opengl.h>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 #include <string>
 
@@ -54,20 +58,45 @@ public:
         }
     }
 
-    void setMVP(const Math::Mat4& matrix) {
-        this->enable();
-
-        if (this->mvp > -1) {
-            glUniformMatrix4fv(this->mvp, 1, GL_TRUE, (GLfloat*)matrix.data());
+    void setUniform(const std::string& name, const Math::Mat4& value) {
+        GLint uniform = this->checkoutUniform(name);
+        if (uniform > -1) {
+            glUniformMatrix4fv(uniform, 1, GL_TRUE, (GLfloat*)value.data());
         }
     }
 
-    // local -> world space transformation matrix
-    void setLW(const Math::Mat4& matrix) {
-        this->enable();
+    void setUniform(const std::string& name, const Math::Mat3& value) {
+        GLint uniform = this->checkoutUniform(name);
+        if (uniform > -1) {
+            glUniformMatrix3fv(uniform, 1, GL_TRUE, (GLfloat*)value.data());
+        }
+    }
 
-        if (this->lw > -1) {
-            glUniformMatrix4fv(this->lw, 1, GL_TRUE, (GLfloat*)matrix.data());
+    void setUniform(const std::string& name, const Math::Vec4& value) {
+        GLint uniform = this->checkoutUniform(name);
+        if (uniform > -1) {
+            glUniform4fv(uniform, 1, (GLfloat*)value.data());
+        }
+    }
+
+    void setUniform(const std::string& name, const Math::Vec3& value) {
+        GLint uniform = this->checkoutUniform(name);
+        if (uniform > -1) {
+            glUniform3fv(uniform, 1, (GLfloat*)value.data());
+        }
+    }
+
+    void setUniform(const std::string& name, float value) {
+        GLint uniform = this->checkoutUniform(name);
+        if (uniform > -1) {
+            glUniform1f(uniform, value);
+        }
+    }
+
+    void setUniform(const std::string& name, int value) {
+        GLint uniform = this->checkoutUniform(name);
+        if (uniform > -1) {
+            glUniform1i(uniform, value);
         }
     }
 
@@ -77,15 +106,29 @@ public:
         }
     }
 
-    void enable();
+    void enable() {
+        if (this->program == 0) {
+            this->program = Opengl::ShaderLoader::createProgram(this->shaderList);
+        }
+
+        glUseProgram(this->program);
+    }
 
 private:
+    GLint checkoutUniform(const std::string& name) {
+        this->enable();
+
+        if (this->uniforms.find(name) == this->uniforms.end()) {
+            this->uniforms.insert(std::make_pair(name, glGetUniformLocation(this->program, name.c_str())));
+        }
+
+        return this->uniforms.at(name);
+    }
+
+    std::unordered_map<std::string, GLint> uniforms;
     std::vector<GLuint> shaderList;
 
     GLuint program;
-
-    GLint mvp;        // vertex shader
-    GLint lw;         // vertex shader
 };
 
 }  // namespace Opengl
