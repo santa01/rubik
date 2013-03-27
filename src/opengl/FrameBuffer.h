@@ -24,7 +24,8 @@
 #define FRAMEBUFFER_H
 
 #include "NonCopyable.h"
-#include "Texture.h"
+#include "ImageTexture.h"
+#include "DepthTexture.h"
 
 #define GL_GLEXT_PROTOTYPES
 #include <SDL2/SDL_opengl.h>
@@ -36,14 +37,16 @@ namespace Opengl {
 class FrameBuffer: public Common::NonCopyable {
 public:
     FrameBuffer():
-            FrameBuffer(512, 512) {
+            FrameBuffer(128, 128) {
     }
 
     FrameBuffer(int width, int height):
-            texture(width, height) {
+            colorAttachement(width, height),
+            depthAttachement(width, height) {
         glGenFramebuffers(1, &this->fbo);
         glBindFramebuffer(GL_FRAMEBUFFER, this->fbo);
-        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, this->texture.getHandle(), 0);
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, this->colorAttachement.getHandle(), 0);
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, this->depthAttachement.getHandle(), 0);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
@@ -56,7 +59,8 @@ public:
     }
 
 private:
-    Texture texture;
+    ImageTexture colorAttachement;
+    DepthTexture depthAttachement;
 
     GLuint fbo;
 };

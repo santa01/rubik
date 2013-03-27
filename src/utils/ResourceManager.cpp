@@ -21,10 +21,8 @@
  */
 
 #include "ResourceManager.h"
-#include "Logger.h"
 #include "ShaderLoader.h"
 
-#include <utility>
 #include <fstream>
 #include <sstream>
 
@@ -42,10 +40,7 @@ std::shared_ptr<Opengl::Texture>& ResourceManager::makeTexture(const std::string
             return this->textureCache["nullptr"];
         }
 
-        std::shared_ptr<Opengl::Texture> texture(new Opengl::Texture());
-        texture->load(image);
-        this->textureCache.insert(std::make_pair(name, texture));
-
+        this->insertTexture(name, image);
         SDL_FreeSurface(image);
     }
 

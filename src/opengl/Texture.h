@@ -27,8 +27,6 @@
 
 #define GL_GLEXT_PROTOTYPES
 #include <SDL2/SDL_opengl.h>
-#include <SDL2/SDL_image.h>
-#include <string>
 
 namespace Rubik {
 
@@ -38,20 +36,9 @@ class Texture: public Common::NonCopyable {
 public:
     Texture() {
         glGenTextures(1, &this->texture);
-        glBindTexture(GL_TEXTURE_2D, this->texture);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glBindTexture(GL_TEXTURE_2D, 0);
     }
 
-    Texture(int width, int height):
-            Texture() {
-        glBindTexture(GL_TEXTURE_2D, this->texture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-        glBindTexture(GL_TEXTURE_2D, 0);
-    }
-
-    ~Texture() {
+    virtual ~Texture() {
         glDeleteTextures(1, &this->texture);
     }
 
@@ -59,16 +46,12 @@ public:
         return this->texture;
     }
 
-    void load(SDL_Surface* image);
-
     void bind() {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, this->texture);
     }
 
-private:
-    SDL_Surface* convertToRGBA(SDL_Surface* image);
-
+protected:
     GLuint texture;
 };
 

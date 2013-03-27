@@ -24,11 +24,14 @@
 #define RESOURCEMANAGER_H
 
 #include "Texture.h"
+#include "Logger.h"
+#include "ImageTexture.h"
 #include "RenderEffect.h"
 #include "NonCopyable.h"
 
 #include <SDL2/SDL_image.h>
 #include <unordered_map>
+#include <utility>
 #include <string>
 #include <memory>
 
@@ -46,11 +49,33 @@ public:
     std::shared_ptr<Opengl::Texture>& makeTexture(const std::string& name);
     std::shared_ptr<Opengl::RenderEffect>& makeEffect(const std::string& name);
 
+    void purgeTextureCache() {
+        for (auto& texture: this->textureCache) {
+            if (!texture.second.unique()) {
+                Logger::getInstance().log(Logger::LOG_WARNING, "Texture %p has %d references left!",
+                        texture.second.get(), texture.second.use_count() - 1);
+            }
+        }
+
+        this->textureCache.clear();
+    }
+
+    void purgeEffectCache() {
+        for (auto& effect: this->effectCache) {
+            if (!effect.second.unique()) {
+                Logger::getInstance().log(Logger::LOG_WARNING, "RenderEffect %p has %d references left!",
+                        effect.second.get(), effect.second.use_count() - 1);
+            }
+        }
+
+        this->effectCache.clear();
+    }
+
 private:
     ResourceManager() = default;
 
     void insertTexture(const std::string& name, SDL_Surface* image) {
-        std::shared_ptr<Opengl::Texture> texture(new Opengl::Texture());
+        std::shared_ptr<Opengl::ImageTexture> texture(new Opengl::ImageTexture());
         texture->load(image);
         this->textureCache.insert(std::make_pair(name, texture));
     }

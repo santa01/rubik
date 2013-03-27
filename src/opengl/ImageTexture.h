@@ -20,64 +20,42 @@
  * SOFTWARE.
  */
 
-#ifndef POLANDBALL_H
-#define POLANDBALL_H
+#ifndef IMAGETEXTURE_H
+#define IMAGETEXTURE_H
 
-#include "Camera.h"
-#include "Vec3.h"
-#include "Cube.h"
-#include "NonCopyable.h"
-#include "FrameBuffer.h"
+#include "Texture.h"
 
-#include <SDL2/SDL_video.h>
-#include <SDL2/SDL_scancode.h>
-#include <memory>
-#include <vector>
+#define GL_GLEXT_PROTOTYPES
+#include <SDL2/SDL_opengl.h>
+#include <SDL2/SDL_image.h>
+#include <string>
 
 namespace Rubik {
 
-class Rubik: public Common::NonCopyable {
+namespace Opengl {
+
+class ImageTexture: public Texture {
 public:
-    Rubik();
-    int exec();
+    ImageTexture():
+            ImageTexture(128, 128) {
+    }
+
+    ImageTexture(int width, int height) {
+        glBindTexture(GL_TEXTURE_2D, this->texture);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+
+    void load(SDL_Surface* image);
 
 private:
-    enum {
-        ERROR_OK,
-        ERROR_SETUP
-    };
-
-    bool initialize();
-    void shutdown();
-
-    bool initSDL();
-    bool initOpenGL();
-
-    void rotateCube(const Math::Vec3& direction);
-    void rotateSection(const Math::Vec3& position, const Math::Vec3& direction);
-
-    void update();
-    void render();
-
-    SDL_Window* window;
-    SDL_GLContext context;
-
-    std::unique_ptr<Game::Cube> cube;
-    std::unique_ptr<Opengl::FrameBuffer> frameBuffer;
-    std::shared_ptr<Opengl::RenderEffect> defaultEffect;
-    std::shared_ptr<Opengl::RenderEffect> pickupEffect;
-
-    Game::Camera camera;
-
-    int width;
-    int height;
-    bool running;
-    float frameTime;
-
-    bool mouseButtonStates[SDL_BUTTON_X2 + 1];
-    bool keyboardButtonStates[SDL_NUM_SCANCODES];
+    SDL_Surface* convertToRGBA(SDL_Surface* image);
 };
+
+}  // namespace Opengl
 
 }  // namespace Rubik
 
-#endif  // POLANDBALL_H
+#endif  // IMAGETEXTURE_H

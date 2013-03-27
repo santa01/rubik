@@ -104,7 +104,7 @@ public:
     void animate(float frameTime);
 
 private:
-    std::array<std::unique_ptr<Opengl::CubeMesh>, 27> cubeArray;
+    std::array<std::unique_ptr<Opengl::CubeMesh>, 3> cubeArray;
 
     Math::Vec3 verticalAxis;
     Math::Vec3 horizontalAxis;

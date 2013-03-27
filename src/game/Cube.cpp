@@ -36,7 +36,7 @@ Cube::Cube() {
         this->cubeArray[i] = std::move(subCube);
     }
 
-    this->yaw(180.0f);
+    //this->yaw(180.0f);
     this->state = STATE_IDLE;
 }
 

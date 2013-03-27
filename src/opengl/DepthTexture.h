@@ -20,64 +20,34 @@
  * SOFTWARE.
  */
 
-#ifndef POLANDBALL_H
-#define POLANDBALL_H
+#ifndef DEPTHTEXTURE_H
+#define DEPTHTEXTURE_H
 
-#include "Camera.h"
-#include "Vec3.h"
-#include "Cube.h"
-#include "NonCopyable.h"
-#include "FrameBuffer.h"
+#include "Texture.h"
 
-#include <SDL2/SDL_video.h>
-#include <SDL2/SDL_scancode.h>
-#include <memory>
-#include <vector>
+#define GL_GLEXT_PROTOTYPES
+#include <SDL2/SDL_opengl.h>
 
 namespace Rubik {
 
-class Rubik: public Common::NonCopyable {
+namespace Opengl {
+
+class DepthTexture: public Texture {
 public:
-    Rubik();
-    int exec();
+    DepthTexture():
+            DepthTexture(128, 128) {
+    }
 
-private:
-    enum {
-        ERROR_OK,
-        ERROR_SETUP
-    };
-
-    bool initialize();
-    void shutdown();
-
-    bool initSDL();
-    bool initOpenGL();
-
-    void rotateCube(const Math::Vec3& direction);
-    void rotateSection(const Math::Vec3& position, const Math::Vec3& direction);
-
-    void update();
-    void render();
-
-    SDL_Window* window;
-    SDL_GLContext context;
-
-    std::unique_ptr<Game::Cube> cube;
-    std::unique_ptr<Opengl::FrameBuffer> frameBuffer;
-    std::shared_ptr<Opengl::RenderEffect> defaultEffect;
-    std::shared_ptr<Opengl::RenderEffect> pickupEffect;
-
-    Game::Camera camera;
-
-    int width;
-    int height;
-    bool running;
-    float frameTime;
-
-    bool mouseButtonStates[SDL_BUTTON_X2 + 1];
-    bool keyboardButtonStates[SDL_NUM_SCANCODES];
+    DepthTexture(int width, int height) {
+        glBindTexture(GL_TEXTURE_2D, this->texture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, width, height, 0, GL_DEPTH_COMPONENT,
+                GL_UNSIGNED_BYTE, nullptr);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
 };
+
+}  // namespace Opengl
 
 }  // namespace Rubik
 
-#endif  // POLANDBALL_H
+#endif  // DEPTHTEXTURE_H

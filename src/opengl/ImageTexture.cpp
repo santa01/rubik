@@ -20,11 +20,47 @@
  * SOFTWARE.
  */
 
-#include "Texture.h"
+#include "ImageTexture.h"
 
 namespace Rubik {
 
 namespace Opengl {
+
+void ImageTexture::load(SDL_Surface* image) {
+    if (image == nullptr) {
+        return;
+    }
+
+    SDL_Surface* source = (image->format->BytesPerPixel != 4) ? this->convertToRGBA(image) : image;
+    if (source == nullptr) {
+        return;
+    }
+
+    glBindTexture(GL_TEXTURE_2D, this->texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, source->w, source->h, 0,
+            (source->format->Rmask > source->format->Bmask) ? GL_BGRA : GL_RGBA, GL_UNSIGNED_BYTE, source->pixels);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    if (source != image) {  // Free only our copy if made
+        SDL_FreeSurface(source);
+    }
+}
+
+SDL_Surface* ImageTexture::convertToRGBA(SDL_Surface* image) {
+    SDL_Surface* newSource = SDL_CreateRGBSurface(SDL_SWSURFACE, image->w, image->h, 32,
+            0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000);
+    if (newSource == nullptr) {
+        return nullptr;
+    }
+
+    if (SDL_BlitSurface(image, nullptr, newSource, nullptr)) {
+        SDL_FreeSurface(newSource);
+        return nullptr;
+    }
+
+    return newSource;
+}
 
 }  // namespace Opengl
 

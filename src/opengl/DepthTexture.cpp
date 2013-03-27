@@ -20,64 +20,12 @@
  * SOFTWARE.
  */
 
-#ifndef POLANDBALL_H
-#define POLANDBALL_H
-
-#include "Camera.h"
-#include "Vec3.h"
-#include "Cube.h"
-#include "NonCopyable.h"
-#include "FrameBuffer.h"
-
-#include <SDL2/SDL_video.h>
-#include <SDL2/SDL_scancode.h>
-#include <memory>
-#include <vector>
+#include "DepthTexture.h"
 
 namespace Rubik {
 
-class Rubik: public Common::NonCopyable {
-public:
-    Rubik();
-    int exec();
+namespace Opengl {
 
-private:
-    enum {
-        ERROR_OK,
-        ERROR_SETUP
-    };
-
-    bool initialize();
-    void shutdown();
-
-    bool initSDL();
-    bool initOpenGL();
-
-    void rotateCube(const Math::Vec3& direction);
-    void rotateSection(const Math::Vec3& position, const Math::Vec3& direction);
-
-    void update();
-    void render();
-
-    SDL_Window* window;
-    SDL_GLContext context;
-
-    std::unique_ptr<Game::Cube> cube;
-    std::unique_ptr<Opengl::FrameBuffer> frameBuffer;
-    std::shared_ptr<Opengl::RenderEffect> defaultEffect;
-    std::shared_ptr<Opengl::RenderEffect> pickupEffect;
-
-    Game::Camera camera;
-
-    int width;
-    int height;
-    bool running;
-    float frameTime;
-
-    bool mouseButtonStates[SDL_BUTTON_X2 + 1];
-    bool keyboardButtonStates[SDL_NUM_SCANCODES];
-};
+}  // namespace Opengl
 
 }  // namespace Rubik
-
-#endif  // POLANDBALL_H

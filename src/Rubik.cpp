@@ -49,8 +49,8 @@ Rubik::Rubik() {
 }
 
 int Rubik::exec() {
-    if (!this->setUp()) {
-        this->tearDown();
+    if (!this->initialize()) {
+        this->shutdown();
         return ERROR_SETUP;
     }
 
@@ -65,11 +65,11 @@ int Rubik::exec() {
                     break;
 
                 case SDL_MOUSEMOTION:
-                    if (this->mouseButtonStates[SDL_BUTTON_RIGHT]) {
-                        this->rotateCube(Math::Vec3(event.motion.xrel, event.motion.yrel, 0.0f));
-                    }
                     if (this->mouseButtonStates[SDL_BUTTON_LEFT]) {
-                        this->rotateSection(Math::Vec3(event.motion.x, event.motion.y, 0.0f));
+                        this->rotateSection(Math::Vec3(event.motion.x, event.motion.y, 0.0f),
+                                Math::Vec3(event.motion.xrel, event.motion.yrel, 0.0f));
+                    } else if (this->mouseButtonStates[SDL_BUTTON_RIGHT]) {
+                        this->rotateCube(Math::Vec3(event.motion.xrel, event.motion.yrel, 0.0f));
                     }
                     break;
 
@@ -97,12 +97,12 @@ int Rubik::exec() {
         this->frameTime = (SDL_GetTicks() - beginFrame) / 1000.0f;
     }
 
-    this->tearDown();
+    this->shutdown();
     return ERROR_OK;
 }
 
-bool Rubik::setUp() {
-    Utils::Logger::getInstance().log(Utils::Logger::LOG_INFO, "Setting up...");
+bool Rubik::initialize() {
+    Utils::Logger::getInstance().log(Utils::Logger::LOG_INFO, "Initializing...");
 
     if (!this->initSDL() || !this->initOpenGL()) {
         return false;
@@ -125,8 +125,15 @@ bool Rubik::setUp() {
     return true;
 }
 
-void Rubik::tearDown() {
-    Utils::Logger::getInstance().log(Utils::Logger::LOG_INFO, "Tearing down...");
+void Rubik::shutdown() {
+    this->frameBuffer.reset();
+    this->pickupEffect.reset();
+    this->defaultEffect.reset();
+    this->cube.reset();
+
+    Utils::Logger::getInstance().log(Utils::Logger::LOG_INFO, "Cleaning caches...");
+    Utils::ResourceManager::getInstance().purgeTextureCache();
+    Utils::ResourceManager::getInstance().purgeEffectCache();
 
     if (this->context) {
         SDL_GL_DeleteContext(this->context);
@@ -138,6 +145,8 @@ void Rubik::tearDown() {
 
     IMG_Quit();
     SDL_Quit();
+
+    Utils::Logger::getInstance().log(Utils::Logger::LOG_INFO, "Shutting down...");
 }
 
 bool Rubik::initSDL() {
@@ -171,7 +180,8 @@ bool Rubik::initOpenGL() {
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
-    Utils::Logger::getInstance().log(Utils::Logger::LOG_INFO, "Initializing %d x %d viewport", this->width, this->height);
+    Utils::Logger::getInstance().log(Utils::Logger::LOG_INFO, "Initializing %d x %d viewport",
+            this->width, this->height);
     this->window = SDL_CreateWindow("Rubik's Cube", 0, 0, this->width, this->height,
             SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
     if (!this->window) {
@@ -212,14 +222,17 @@ void Rubik::rotateCube(const Math::Vec3& direction) {
     }
 }
 
-void Rubik::rotateSection(const Math::Vec3& position) {
+void Rubik::rotateSection(const Math::Vec3& position, const Math::Vec3& direction) {
     this->frameBuffer->bind();
 
-    float data;
+    float data[4];
     glReadPixels(position.get(Math::Vec3::X), this->height - position.get(Math::Vec3::Y),
-            1, 1, GL_RED, GL_FLOAT, &data);
+            1, 1, GL_RGBA, GL_FLOAT, data);
 
-    int subCubeId = data * 100.0f;
+    int subCubeId = data[0] * 100.0f + 0.5f;  // Eliminate fp errors
+    Utils::Logger::getInstance().log(Utils::Logger::LOG_INFO, "At %f %f", position.get(Math::Vec3::X),
+            this->height - position.get(Math::Vec3::Y));
+    Utils::Logger::getInstance().log(Utils::Logger::LOG_INFO, "Selected: %d", subCubeId);
 }
 
 void Rubik::update() {
