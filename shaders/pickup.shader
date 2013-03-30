@@ -12,11 +12,11 @@
 #endif
 
 #ifdef TYPE_FRAGMENT
-    uniform int id;
+    uniform vec3 cubeArrayPosition;
 
     out vec4 fragmentColor;
 
     void main() {
-        fragmentColor = vec4(id / 100.0f, 0.0f, 0.0f, 0.0f);
+        fragmentColor = vec4(cubeArrayPosition / 100.0f, 0.0f);
     }
 #endif

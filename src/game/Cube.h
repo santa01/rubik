@@ -23,7 +23,6 @@
 #ifndef CUBE_H
 #define CUBE_H
 
-#include "Rotatable.h"
 #include "NonCopyable.h"
 #include "CubeMesh.h"
 #include "RenderEffect.h"
@@ -35,8 +34,10 @@ namespace Rubik {
 
 namespace Game {
 
-class Cube: public Common::Rotatable, public Common::NonCopyable {
+class Cube: public Common::NonCopyable {
 public:
+    static const Math::Vec3 DUMMY_SELECTION;
+
     enum CubeState {
         STATE_IDLE,
         STATE_LEFT_ROTATION,
@@ -47,32 +48,28 @@ public:
 
     Cube();
 
+    float getRotationSpeed() const {
+        return this->rotationSpeed;
+    }
+
+    void setRotationSpeed(float rotationSpeed) {
+        this->rotationSpeed = rotationSpeed;
+    }
+
+    const Math::Vec3& getSelectedSubCube() const {
+        return this->selectedSubCube;
+    }
+
+    void selectSubCube(const Math::Vec3& cubeArrayPosition) {
+        this->selectedSubCube = cubeArrayPosition;
+    }
+
     CubeState getState() const {
         return this->state;
     }
 
     void setState(CubeState state) {
-        if (this->state == STATE_IDLE) {
-            this->state = state;
-        }
-    }
-
-    float getXAngle() const {
-        return this->cubeArray[0]->getXAngle();
-    }
-
-    float getYAngle() const {
-        return this->cubeArray[0]->getYAngle();
-    }
-
-    float getZAngle() const {
-        return this->cubeArray[0]->getZAngle();
-    }
-
-    void rotate(const Math::Vec3& vector, float angle) {
-        for (auto& subCube: this->cubeArray) {
-            subCube->rotate(vector, angle);
-        }
+        this->state = state;
     }
 
     std::shared_ptr<Opengl::RenderEffect>& getEffect() {
@@ -95,20 +92,20 @@ public:
         }
     }
 
-    void render() {
-        for (auto& subCube: this->cubeArray) {
-            subCube->render();
-        }
-    }
-
+    void render();
     void animate(float frameTime);
 
 private:
-    std::array<std::unique_ptr<Opengl::CubeMesh>, 3> cubeArray;
+    void rotateCubeArray(CubeState state, const Math::Vec3 cubeArrayPosition);
 
-    Math::Vec3 verticalAxis;
-    Math::Vec3 horizontalAxis;
+    void roll(float angle, const Math::Vec3 cubeArrayPosition);
+    void yaw(float angle, const Math::Vec3 cubeArrayPosition);
 
+    std::array<std::shared_ptr<Opengl::CubeMesh>, 27> cubeArray;
+
+    Math::Vec3 selectedSubCube;
+
+    float rotationSpeed;
     CubeState state;
 };
 

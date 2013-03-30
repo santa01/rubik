@@ -53,10 +53,26 @@ private:
     bool initSDL();
     bool initOpenGL();
 
-    void rotateCube(const Math::Vec3& direction);
-    void rotateSection(const Math::Vec3& position, const Math::Vec3& direction);
+    Math::Vec3 pickSubCube(const Math::Vec3& position) {
+        this->frameBuffer->bind();
 
-    void update();
+        float data[4];
+        glReadPixels(position.get(Math::Vec3::X), this->height - position.get(Math::Vec3::Y),
+                1, 1, GL_RGBA, GL_FLOAT, data);
+
+        return Math::Vec3(roundf(data[0] * 100.0f), roundf(data[1] * 100.0f), roundf(data[2] * 100.0f));
+    }
+
+    void rotateCube(const Math::Vec3& direction);
+
+    void update() {
+        if (this->keyboardButtonStates[SDL_SCANCODE_ESCAPE]) {
+            this->running = false;
+        }
+
+        this->cube->animate(this->frameTime);
+    }
+
     void render();
 
     SDL_Window* window;

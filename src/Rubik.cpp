@@ -55,6 +55,8 @@ int Rubik::exec() {
     }
 
     SDL_Event event;
+    Math::Vec3 cubeArrayPosition;
+
     while (this->running) {
         unsigned int beginFrame = SDL_GetTicks();
 
@@ -65,15 +67,23 @@ int Rubik::exec() {
                     break;
 
                 case SDL_MOUSEMOTION:
+                    if (this->cube->getState() != Game::Cube::STATE_IDLE ||
+                            cubeArrayPosition.get(Math::Vec3::Z) != 0.0f) {
+                        break;
+                    }
+
                     if (this->mouseButtonStates[SDL_BUTTON_LEFT]) {
-                        this->rotateSection(Math::Vec3(event.motion.x, event.motion.y, 0.0f),
-                                Math::Vec3(event.motion.xrel, event.motion.yrel, 0.0f));
+                        this->cube->selectSubCube(cubeArrayPosition);
+                        this->rotateCube(Math::Vec3(event.motion.xrel, event.motion.yrel, 0.0f));
                     } else if (this->mouseButtonStates[SDL_BUTTON_RIGHT]) {
+                        this->cube->selectSubCube(Game::Cube::DUMMY_SELECTION);
                         this->rotateCube(Math::Vec3(event.motion.xrel, event.motion.yrel, 0.0f));
                     }
+
                     break;
 
                 case SDL_MOUSEBUTTONDOWN:
+                    cubeArrayPosition = this->pickSubCube(Math::Vec3(event.button.x, event.button.y, 0.0f));
                     this->mouseButtonStates[event.button.button] = true;
                     break;
 
@@ -207,6 +217,10 @@ bool Rubik::initOpenGL() {
 }
 
 void Rubik::rotateCube(const Math::Vec3& direction) {
+    if (direction.length() < 1.5f) {
+        return;
+    }
+
     if (fabsf(direction.get(Math::Vec3::X)) > fabsf(direction.get(Math::Vec3::Y))) {
         if (direction.get(Math::Vec3::X) > 0) {
             this->cube->setState(Game::Cube::CubeState::STATE_RIGHT_ROTATION);
@@ -215,32 +229,11 @@ void Rubik::rotateCube(const Math::Vec3& direction) {
         }
     } else {
         if (direction.get(Math::Vec3::Y) > 0) {
-            this->cube->setState(Game::Cube::CubeState::STATE_UP_ROTATION);
-        } else {
             this->cube->setState(Game::Cube::CubeState::STATE_DOWN_ROTATION);
+        } else {
+            this->cube->setState(Game::Cube::CubeState::STATE_UP_ROTATION);
         }
     }
-}
-
-void Rubik::rotateSection(const Math::Vec3& position, const Math::Vec3& direction) {
-    this->frameBuffer->bind();
-
-    float data[4];
-    glReadPixels(position.get(Math::Vec3::X), this->height - position.get(Math::Vec3::Y),
-            1, 1, GL_RGBA, GL_FLOAT, data);
-
-    int subCubeId = data[0] * 100.0f + 0.5f;  // Eliminate fp errors
-    Utils::Logger::getInstance().log(Utils::Logger::LOG_INFO, "At %f %f", position.get(Math::Vec3::X),
-            this->height - position.get(Math::Vec3::Y));
-    Utils::Logger::getInstance().log(Utils::Logger::LOG_INFO, "Selected: %d", subCubeId);
-}
-
-void Rubik::update() {
-    if (this->keyboardButtonStates[SDL_SCANCODE_ESCAPE]) {
-        this->running = false;
-    }
-
-    this->cube->animate(this->frameTime);
 }
 
 void Rubik::render() {
