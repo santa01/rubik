@@ -31,6 +31,7 @@
 
 #include <SDL2/SDL_video.h>
 #include <SDL2/SDL_scancode.h>
+#include <SDL2/SDL_ttf.h>
 #include <memory>
 #include <vector>
 
@@ -52,31 +53,20 @@ private:
 
     bool initSDL();
     bool initOpenGL();
+    bool initFontConfig();
 
-    Math::Vec3 pickSubCube(const Math::Vec3& position) {
-        this->frameBuffer->bind();
+    void onMouseMotionEvent(SDL_MouseMotionEvent& event);
+    void onMouseButtonEvent(SDL_MouseButtonEvent& event);
+    void onKeyboardEvent(SDL_KeyboardEvent& event);
 
-        float data[4];
-        glReadPixels(position.get(Math::Vec3::X), this->height - position.get(Math::Vec3::Y),
-                1, 1, GL_RGBA, GL_FLOAT, data);
+    void rotateCube(const Math::Vec3& direction, const Math::Vec3& position);
 
-        return Math::Vec3(roundf(data[0] * 100.0f), roundf(data[1] * 100.0f), roundf(data[2] * 100.0f));
-    }
-
-    void rotateCube(const Math::Vec3& direction);
-
-    void update() {
-        if (this->keyboardButtonStates[SDL_SCANCODE_ESCAPE]) {
-            this->running = false;
-        }
-
-        this->cube->animate(this->frameTime);
-    }
-
+    void update();
     void render();
 
     SDL_Window* window;
     SDL_GLContext context;
+    TTF_Font* defaultFont;
 
     std::unique_ptr<Game::Cube> cube;
     std::unique_ptr<Opengl::FrameBuffer> frameBuffer;
@@ -87,11 +77,14 @@ private:
 
     int width;
     int height;
-    bool running;
+    int movesCounter;
     float frameTime;
 
-    bool mouseButtonStates[SDL_BUTTON_X2 + 1];
-    bool keyboardButtonStates[SDL_NUM_SCANCODES];
+    bool running;
+    bool paused;
+
+    Uint8 mouseButtonStates[SDL_BUTTON_X2 + 1];
+    Uint8 keyboardButtonStates[SDL_NUM_SCANCODES];
 };
 
 }  // namespace Rubik

@@ -97,6 +97,8 @@ CubeMesh::CubeMesh() {
     this->xAngle = 0.0f;
     this->yAngle = 0.0f;
     this->zAngle = 0.0f;
+
+    this->id = 0;
 }
 
 void CubeMesh::rotate(const Math::Vec3& vector, float angle) {

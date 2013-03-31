@@ -92,21 +92,28 @@ public:
         }
     }
 
+    bool inOrder() const {
+        for (int i = 0; i < 27; i++) {
+            if (this->cubeArray[i]->getID() != i) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    void shuffle(int times);
     void render();
     void animate(float frameTime);
 
 private:
     void rotateCubeArray(CubeState state, const Math::Vec3 cubeArrayPosition);
-
-    void roll(float angle, const Math::Vec3 cubeArrayPosition);
-    void yaw(float angle, const Math::Vec3 cubeArrayPosition);
+    void rotate(CubeState state, float angle, const Math::Vec3 cubeArrayPosition);
 
     std::array<std::shared_ptr<Opengl::CubeMesh>, 27> cubeArray;
 
     Math::Vec3 selectedSubCube;
-
-    float rotationSpeed;
     CubeState state;
+    float rotationSpeed;
 };
 
 }  // namespace Game

@@ -112,6 +112,14 @@ public:
         return this->scaling.get(2, 2);
     }
 
+    int getID() const {
+        return this->id;
+    }
+
+    void setID(int id) {
+        this->id = id;
+    }
+
     std::shared_ptr<RenderEffect>& getEffect() {
         return this->effect;
     }
@@ -146,6 +154,8 @@ private:
     float xAngle;
     float yAngle;
     float zAngle;
+
+    int id;
 
     GLuint buffers[2];
     GLuint vao;

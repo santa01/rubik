@@ -25,8 +25,11 @@
 #include "Vec3.h"
 #include "ResourceManager.h"
 
+#include <fontconfig/fontconfig.h>
 #include <SDL2/SDL.h>
 #include <cmath>
+#include <cstdlib>
+#include <ctime>
 
 namespace Rubik {
 
@@ -34,17 +37,20 @@ Rubik::Rubik() {
     this->window = nullptr;
     this->context = nullptr;
 
-    this->running = true;
     this->width = 800;
     this->height = 600;
+    this->movesCounter = 0;
     this->frameTime = 0.0f;
 
+    this->running = true;
+    this->paused = false;
+
     for (auto& buttonState: this->mouseButtonStates) {
-        buttonState = false;
+        buttonState = SDL_RELEASED;
     }
 
     for (auto& keyState: this->keyboardButtonStates) {
-        keyState = false;
+        keyState = SDL_RELEASED;
     }
 }
 
@@ -55,8 +61,6 @@ int Rubik::exec() {
     }
 
     SDL_Event event;
-    Math::Vec3 cubeArrayPosition;
-
     while (this->running) {
         unsigned int beginFrame = SDL_GetTicks();
 
@@ -67,36 +71,19 @@ int Rubik::exec() {
                     break;
 
                 case SDL_MOUSEMOTION:
-                    if (this->cube->getState() != Game::Cube::STATE_IDLE ||
-                            cubeArrayPosition.get(Math::Vec3::Z) != 0.0f) {
-                        break;
-                    }
-
-                    if (this->mouseButtonStates[SDL_BUTTON_LEFT]) {
-                        this->cube->selectSubCube(cubeArrayPosition);
-                        this->rotateCube(Math::Vec3(event.motion.xrel, event.motion.yrel, 0.0f));
-                    } else if (this->mouseButtonStates[SDL_BUTTON_RIGHT]) {
-                        this->cube->selectSubCube(Game::Cube::DUMMY_SELECTION);
-                        this->rotateCube(Math::Vec3(event.motion.xrel, event.motion.yrel, 0.0f));
-                    }
-
+                    this->onMouseMotionEvent(event.motion);
                     break;
 
                 case SDL_MOUSEBUTTONDOWN:
-                    cubeArrayPosition = this->pickSubCube(Math::Vec3(event.button.x, event.button.y, 0.0f));
-                    this->mouseButtonStates[event.button.button] = true;
-                    break;
-
                 case SDL_MOUSEBUTTONUP:
-                    this->mouseButtonStates[event.button.button] = false;
+                    this->mouseButtonStates[event.button.button] = event.button.state;
+                    this->onMouseButtonEvent(event.button);
                     break;
 
                 case SDL_KEYDOWN:
-                    this->keyboardButtonStates[event.key.keysym.scancode] = true;
-                    break;
-
                 case SDL_KEYUP:
-                    this->keyboardButtonStates[event.key.keysym.scancode] = false;
+                    this->keyboardButtonStates[event.key.keysym.scancode] = event.key.state;
+                    this->onKeyboardEvent(event.key);
                     break;
             }
         }
@@ -114,7 +101,7 @@ int Rubik::exec() {
 bool Rubik::initialize() {
     Utils::Logger::getInstance().log(Utils::Logger::LOG_INFO, "Initializing...");
 
-    if (!this->initSDL() || !this->initOpenGL()) {
+    if (!this->initSDL() || !this->initOpenGL() || !this->initFontConfig()) {
         return false;
     }
 
@@ -125,6 +112,7 @@ bool Rubik::initialize() {
 
     this->cube = std::unique_ptr<Game::Cube>(new Game::Cube());
     this->cube->setTexture(Utils::ResourceManager::getInstance().makeTexture("textures/subcube.png"));
+    this->cube->shuffle(20);
 
     this->defaultEffect = Utils::ResourceManager::getInstance().makeEffect("shaders/default.shader");
     this->defaultEffect->setUniform("textureSampler", 0);
@@ -149,11 +137,17 @@ void Rubik::shutdown() {
         SDL_GL_DeleteContext(this->context);
     }
 
+    if (this->defaultFont) {
+        TTF_CloseFont(this->defaultFont);
+    }
+
     if (this->window) {
         SDL_DestroyWindow(this->window);
     }
 
+    FcFini();
     IMG_Quit();
+    TTF_Quit();
     SDL_Quit();
 
     Utils::Logger::getInstance().log(Utils::Logger::LOG_INFO, "Shutting down...");
@@ -162,6 +156,11 @@ void Rubik::shutdown() {
 bool Rubik::initSDL() {
     if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE)) {
         Utils::Logger::getInstance().log(Utils::Logger::LOG_ERROR, "SDL_Init() failed: %s", SDL_GetError());
+        return false;
+    }
+
+    if (TTF_Init()) {
+        Utils::Logger::getInstance().log(Utils::Logger::LOG_ERROR, "TTF_Init() failed: %s", TTF_GetError());
         return false;
     }
 
@@ -174,6 +173,10 @@ bool Rubik::initSDL() {
     SDL_GetVersion(&sdlVersion);
     Utils::Logger::getInstance().log(Utils::Logger::LOG_INFO, "SDL version: %d.%d.%d",
             sdlVersion.major, sdlVersion.minor, sdlVersion.patch);
+
+    const SDL_version *sdlTtfVersion = TTF_Linked_Version();
+    Utils::Logger::getInstance().log(Utils::Logger::LOG_INFO, "SDL_ttf version: %d.%d.%d",
+            sdlTtfVersion->major, sdlTtfVersion->minor, sdlTtfVersion->patch);
 
     const SDL_version *sdlImageVersion = IMG_Linked_Version();
     Utils::Logger::getInstance().log(Utils::Logger::LOG_INFO, "SDL_image version: %d.%d.%d",
@@ -216,10 +219,108 @@ bool Rubik::initOpenGL() {
     return true;
 }
 
-void Rubik::rotateCube(const Math::Vec3& direction) {
-    if (direction.length() < 1.5f) {
+bool Rubik::initFontConfig() {
+    if (!FcInit()) {
+        Utils::Logger::getInstance().log(Utils::Logger::LOG_ERROR, "FcInit() failed");
+        return false;
+    }
+
+    int fcVersion = FcGetVersion();
+    int fcMajor = fcVersion / 10000;
+    int fcMinor = (fcVersion - fcMajor * 10000) / 100;
+    int fcRevision = fcVersion - fcMajor * 10000 - fcMinor * 100;
+    Utils::Logger::getInstance().log(Utils::Logger::LOG_INFO, "Fontconfig version: %d.%d.%d",
+            fcMajor, fcMinor, fcRevision);
+
+    FcPattern* pattern = FcNameParse((const FcChar8*)"sans");
+    FcConfigSubstitute(nullptr, pattern, FcMatchPattern);
+    FcDefaultSubstitute(pattern);
+
+    FcResult result;
+    FcPattern* match = FcFontMatch(nullptr, pattern, &result);
+    FcPatternDestroy(pattern);
+
+    if (!match) {
+        Utils::Logger::getInstance().log(Utils::Logger::LOG_ERROR, "FcFontMatch() failed: no `sans' font found");
+        return false;
+    }
+
+    FcChar8* fontPath = FcPatternFormat(match, (const FcChar8*)"%{file}");
+    FcChar8* fontName = FcPatternFormat(match, (const FcChar8*)"%{family}");
+
+    this->defaultFont = TTF_OpenFont((const char*)fontPath, 12);
+    if (!this->defaultFont) {
+        Utils::Logger::getInstance().log(Utils::Logger::LOG_ERROR, "TTF_OpenFont failed: %s", TTF_GetError());
+        return false;
+    }
+
+    Utils::Logger::getInstance().log(Utils::Logger::LOG_INFO, "Using `%s' family font", fontName);
+
+    FcStrFree(fontName);
+    FcStrFree(fontPath);
+    FcPatternDestroy(match);
+
+    return true;
+}
+
+void Rubik::onMouseMotionEvent(SDL_MouseMotionEvent& event) {
+    if (this->keyboardButtonStates[SDL_SCANCODE_S] == SDL_PRESSED) {
         return;
     }
+
+    Math::Vec3 mouseSelection(Game::Cube::DUMMY_SELECTION);
+    if (this->mouseButtonStates[SDL_BUTTON_LEFT] == SDL_PRESSED ||
+            this->mouseButtonStates[SDL_BUTTON_RIGHT] == SDL_PRESSED) {
+        this->frameBuffer->bind();
+
+        float data[4];
+        glReadPixels(event.x, this->height - event.y, 1, 1, GL_RGBA, GL_FLOAT, data);
+        mouseSelection = Math::Vec3(roundf(data[0] * 100.0f), roundf(data[1] * 100.0f), roundf(data[2] * 100.0f));
+    }
+
+    if (this->mouseButtonStates[SDL_BUTTON_LEFT] == SDL_PRESSED &&
+            this->mouseButtonStates[SDL_BUTTON_RIGHT] == SDL_RELEASED) {
+        if (mouseSelection.get(Math::Vec3::Z) == 0.0f) {  // Front facet
+            this->rotateCube(Math::Vec3(event.xrel, event.yrel, 0.0f), mouseSelection);
+            this->movesCounter++;
+        }
+    } else if (this->mouseButtonStates[SDL_BUTTON_RIGHT] == SDL_PRESSED &&
+            this->mouseButtonStates[SDL_BUTTON_LEFT] == SDL_RELEASED) {
+        if (mouseSelection != Game::Cube::DUMMY_SELECTION) {
+            this->rotateCube(Math::Vec3(event.xrel, event.yrel, 0.0f), Game::Cube::DUMMY_SELECTION);
+        }
+    }
+}
+
+void Rubik::onMouseButtonEvent(SDL_MouseButtonEvent& event) {
+}
+
+void Rubik::onKeyboardEvent(SDL_KeyboardEvent& event) {
+    if (event.keysym.scancode == SDL_SCANCODE_P) {
+        this->paused = !this->paused;
+    }
+
+    static float defaultRotationSpeed = 0.0f;
+    if (event.keysym.scancode == SDL_SCANCODE_S) {
+        if (event.state == SDL_PRESSED) {
+            if (defaultRotationSpeed == 0.0f) {
+                std::srand(std::time(0));
+                defaultRotationSpeed = this->cube->getRotationSpeed();
+                this->cube->setRotationSpeed(500.0f);
+            }
+        } else {
+            this->cube->setRotationSpeed(defaultRotationSpeed);
+            defaultRotationSpeed = 0.0f;
+        }
+    }
+}
+
+void Rubik::rotateCube(const Math::Vec3& direction, const Math::Vec3& position) {
+    if (direction.length() < 1.5f || this->paused) {
+        return;
+    }
+
+    this->cube->selectSubCube(position);
 
     if (fabsf(direction.get(Math::Vec3::X)) > fabsf(direction.get(Math::Vec3::Y))) {
         if (direction.get(Math::Vec3::X) > 0) {
@@ -234,6 +335,30 @@ void Rubik::rotateCube(const Math::Vec3& direction) {
             this->cube->setState(Game::Cube::CubeState::STATE_UP_ROTATION);
         }
     }
+}
+
+void Rubik::update() {
+    if (this->keyboardButtonStates[SDL_SCANCODE_ESCAPE]) {
+        this->running = false;
+    }
+
+    if (this->cube->inOrder() && !this->paused) {
+        this->paused = !this->paused;
+    }
+
+    if (this->paused) {
+        return;
+    }
+
+    if (this->keyboardButtonStates[SDL_SCANCODE_S]) {
+        int row = std::rand() / (RAND_MAX / 1.0f) * 3;
+        int column = std::rand() / (RAND_MAX / 1.0f) * 3;
+
+        this->cube->selectSubCube(Math::Vec3(row, column, 0.0f));
+        this->cube->setState(static_cast<Game::Cube::CubeState>(std::rand() / (RAND_MAX / 1.0f) * 4 + 1));
+    }
+
+    this->cube->animate(this->frameTime);
 }
 
 void Rubik::render() {
