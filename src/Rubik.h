@@ -48,6 +48,13 @@ private:
         ERROR_SETUP
     };
 
+    enum GameState {
+        STATE_RUNNING,
+        STATE_PAUSED,
+        STATE_QUIT,
+        STATE_FINISHED
+    };
+
     bool initialize();
     void shutdown();
 
@@ -78,10 +85,11 @@ private:
     int width;
     int height;
     int movesCounter;
+    int shuffles;
     float frameTime;
 
     bool running;
-    bool paused;
+    GameState state;
 
     Uint8 mouseButtonStates[SDL_BUTTON_X2 + 1];
     Uint8 keyboardButtonStates[SDL_NUM_SCANCODES];

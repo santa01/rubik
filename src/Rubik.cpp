@@ -40,10 +40,11 @@ Rubik::Rubik() {
     this->width = 800;
     this->height = 600;
     this->movesCounter = 0;
+    this->shuffles = 20;
     this->frameTime = 0.0f;
 
     this->running = true;
-    this->paused = false;
+    this->state = STATE_RUNNING;
 
     for (auto& buttonState: this->mouseButtonStates) {
         buttonState = SDL_RELEASED;
@@ -112,7 +113,7 @@ bool Rubik::initialize() {
 
     this->cube = std::unique_ptr<Game::Cube>(new Game::Cube());
     this->cube->setTexture(Utils::ResourceManager::getInstance().makeTexture("textures/subcube.png"));
-    this->cube->shuffle(20);
+    this->cube->shuffle(this->shuffles);
 
     this->defaultEffect = Utils::ResourceManager::getInstance().makeEffect("shaders/default.shader");
     this->defaultEffect->setUniform("textureSampler", 0);
@@ -264,31 +265,36 @@ bool Rubik::initFontConfig() {
 }
 
 void Rubik::onMouseMotionEvent(SDL_MouseMotionEvent& event) {
-    if (this->keyboardButtonStates[SDL_SCANCODE_S] == SDL_PRESSED) {
-        return;
-    }
+    Math::Vec3 selection(Game::Cube::DUMMY_SELECTION);
 
-    Math::Vec3 mouseSelection(Game::Cube::DUMMY_SELECTION);
-    if (this->mouseButtonStates[SDL_BUTTON_LEFT] == SDL_PRESSED ||
-            this->mouseButtonStates[SDL_BUTTON_RIGHT] == SDL_PRESSED) {
-        this->frameBuffer->bind();
+    switch (this->state) {
+        case STATE_RUNNING:
+            if (this->mouseButtonStates[SDL_BUTTON_LEFT] == SDL_PRESSED ||
+                    this->mouseButtonStates[SDL_BUTTON_RIGHT] == SDL_PRESSED) {
+                this->frameBuffer->bind();
 
-        float data[4];
-        glReadPixels(event.x, this->height - event.y, 1, 1, GL_RGBA, GL_FLOAT, data);
-        mouseSelection = Math::Vec3(roundf(data[0] * 100.0f), roundf(data[1] * 100.0f), roundf(data[2] * 100.0f));
-    }
+                float data[4];
+                glReadPixels(event.x, this->height - event.y, 1, 1, GL_RGBA, GL_FLOAT, data);
+                selection = Math::Vec3(roundf(data[0] * 100.0f), roundf(data[1] * 100.0f), roundf(data[2] * 100.0f));
+            }
 
-    if (this->mouseButtonStates[SDL_BUTTON_LEFT] == SDL_PRESSED &&
-            this->mouseButtonStates[SDL_BUTTON_RIGHT] == SDL_RELEASED) {
-        if (mouseSelection.get(Math::Vec3::Z) == 0.0f) {  // Front facet
-            this->rotateCube(Math::Vec3(event.xrel, event.yrel, 0.0f), mouseSelection);
-            this->movesCounter++;
-        }
-    } else if (this->mouseButtonStates[SDL_BUTTON_RIGHT] == SDL_PRESSED &&
-            this->mouseButtonStates[SDL_BUTTON_LEFT] == SDL_RELEASED) {
-        if (mouseSelection != Game::Cube::DUMMY_SELECTION) {
-            this->rotateCube(Math::Vec3(event.xrel, event.yrel, 0.0f), Game::Cube::DUMMY_SELECTION);
-        }
+            if (this->mouseButtonStates[SDL_BUTTON_LEFT] == SDL_PRESSED &&
+                    this->mouseButtonStates[SDL_BUTTON_RIGHT] == SDL_RELEASED) {
+                if (selection.get(Math::Vec3::Z) == 0.0f) {  // Front facet
+                    this->rotateCube(Math::Vec3(event.xrel, event.yrel, 0.0f), selection);
+                    this->movesCounter++;
+                }
+            } else if (this->mouseButtonStates[SDL_BUTTON_RIGHT] == SDL_PRESSED &&
+                    this->mouseButtonStates[SDL_BUTTON_LEFT] == SDL_RELEASED) {
+                if (selection != Game::Cube::DUMMY_SELECTION) {
+                    this->rotateCube(Math::Vec3(event.xrel, event.yrel, 0.0f), Game::Cube::DUMMY_SELECTION);
+                }
+            }
+
+            break;
+
+        default:
+            break;
     }
 }
 
@@ -296,27 +302,45 @@ void Rubik::onMouseButtonEvent(SDL_MouseButtonEvent& event) {
 }
 
 void Rubik::onKeyboardEvent(SDL_KeyboardEvent& event) {
-    if (event.keysym.scancode == SDL_SCANCODE_P) {
-        this->paused = !this->paused;
-    }
-
+    static bool pauseButtonReleased = true;
     static float defaultRotationSpeed = 0.0f;
-    if (event.keysym.scancode == SDL_SCANCODE_S) {
-        if (event.state == SDL_PRESSED) {
-            if (defaultRotationSpeed == 0.0f) {
-                std::srand(std::time(0));
-                defaultRotationSpeed = this->cube->getRotationSpeed();
-                this->cube->setRotationSpeed(500.0f);
+
+    switch (this->state) {
+        case STATE_RUNNING:
+            if (event.keysym.scancode == SDL_SCANCODE_S) {
+                if (event.state == SDL_PRESSED) {
+                    if (defaultRotationSpeed == 0.0f) {
+                        std::srand(std::time(0));
+                        defaultRotationSpeed = this->cube->getRotationSpeed();
+                        this->cube->setRotationSpeed(500.0f);
+                    }
+                } else {
+                    this->cube->setRotationSpeed(defaultRotationSpeed);
+                    defaultRotationSpeed = 0.0f;
+                }
             }
-        } else {
-            this->cube->setRotationSpeed(defaultRotationSpeed);
-            defaultRotationSpeed = 0.0f;
-        }
+            // Fall through
+
+        case STATE_PAUSED:
+            if (event.keysym.scancode == SDL_SCANCODE_P) {
+                if (event.state == SDL_PRESSED) {
+                    if (pauseButtonReleased) {
+                        this->state = (this->state == STATE_RUNNING) ? STATE_PAUSED : STATE_RUNNING;
+                        pauseButtonReleased = false;
+                    }
+                } else {
+                    pauseButtonReleased = true;
+                }
+            }
+            break;
+
+        default:
+            break;
     }
 }
 
 void Rubik::rotateCube(const Math::Vec3& direction, const Math::Vec3& position) {
-    if (direction.length() < 1.5f || this->paused) {
+    if (direction.length() < 1.5f || this->state == STATE_PAUSED) {
         return;
     }
 
@@ -338,27 +362,47 @@ void Rubik::rotateCube(const Math::Vec3& direction, const Math::Vec3& position) 
 }
 
 void Rubik::update() {
-    if (this->keyboardButtonStates[SDL_SCANCODE_ESCAPE]) {
-        this->running = false;
+    switch (this->state) {
+        case STATE_RUNNING:
+            if (this->keyboardButtonStates[SDL_SCANCODE_S]) {
+                int row = std::rand() / (RAND_MAX / 1.0f) * 3;
+                int column = std::rand() / (RAND_MAX / 1.0f) * 3;
+
+                this->cube->selectSubCube(Math::Vec3(row, column, 0.0f));
+                this->cube->setState(static_cast<Game::Cube::CubeState>(std::rand() / (RAND_MAX / 1.0f) * 4 + 1));
+            }
+
+            if (this->keyboardButtonStates[SDL_SCANCODE_ESCAPE]) {
+                this->state = STATE_QUIT;
+            }
+
+            if (this->cube->inOrder()) {
+                this->state = STATE_FINISHED;
+            }
+
+            this->cube->animate(this->frameTime);
+            break;
+
+        case STATE_QUIT:
+            if (this->keyboardButtonStates[SDL_SCANCODE_Y]) {
+                this->running = false;
+            } else if (this->keyboardButtonStates[SDL_SCANCODE_N]) {
+                this->state = STATE_RUNNING;
+            }
+            break;
+
+        case STATE_FINISHED:
+            if (this->keyboardButtonStates[SDL_SCANCODE_N]) {
+                this->running = false;
+            } else if (this->keyboardButtonStates[SDL_SCANCODE_Y]) {
+                this->cube->shuffle(this->shuffles);
+                this->state = STATE_RUNNING;
+            }
+            break;
+
+        default:
+            break;
     }
-
-    if (this->cube->inOrder() && !this->paused) {
-        this->paused = !this->paused;
-    }
-
-    if (this->paused) {
-        return;
-    }
-
-    if (this->keyboardButtonStates[SDL_SCANCODE_S]) {
-        int row = std::rand() / (RAND_MAX / 1.0f) * 3;
-        int column = std::rand() / (RAND_MAX / 1.0f) * 3;
-
-        this->cube->selectSubCube(Math::Vec3(row, column, 0.0f));
-        this->cube->setState(static_cast<Game::Cube::CubeState>(std::rand() / (RAND_MAX / 1.0f) * 4 + 1));
-    }
-
-    this->cube->animate(this->frameTime);
 }
 
 void Rubik::render() {
