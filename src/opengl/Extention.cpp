@@ -20,48 +20,26 @@
  * SOFTWARE.
  */
 
-#ifndef IMAGETEXTURE_H
-#define IMAGETEXTURE_H
-
-#include "Texture.h"
 #include "Extention.h"
-
-#include <SDL2/SDL_image.h>
-#include <string>
 
 namespace Rubik {
 
 namespace Opengl {
 
-class ImageTexture: public Texture {
-public:
-    ImageTexture():
-            ImageTexture(128, 128) {
-    }
+bool Extention::isSupported(const std::string& extention) {
+    GLint extensions;
 
-    ImageTexture(int width, int height) {
-        glBindTexture(GL_TEXTURE_2D, this->texture);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        if (Extention::isSupported("GL_EXT_texture_filter_anisotropic")) {
-            float maxAnisotropy;
-            glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAnisotropy);
-            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotropy);
+    glGetIntegerv(GL_NUM_EXTENSIONS, &extensions);
+    for (int i = 0; i < extensions; i++) {
+        // Extentions list should be cached
+        if (extention.compare((char*)glGetStringi(GL_EXTENSIONS, i)) == 0) {
+            return true;
         }
-
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-        glBindTexture(GL_TEXTURE_2D, 0);
     }
 
-    bool load(SDL_Surface* image);
-
-private:
-    SDL_Surface* convertToRGBA(SDL_Surface* image);
-};
+    return false;
+}
 
 }  // namespace Opengl
 
 }  // namespace Rubik
-
-#endif  // IMAGETEXTURE_H
