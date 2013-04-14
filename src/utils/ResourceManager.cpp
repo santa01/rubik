@@ -32,7 +32,7 @@ namespace Utils {
 
 std::shared_ptr<Opengl::Texture>& ResourceManager::makeTexture(const std::string& name) {
     if (this->textureCache.find(name) == this->textureCache.end()) {
-        Logger::getInstance().log(Logger::LOG_INFO, "Loading image `%s'", name.c_str());
+        Logger::getInstance().log(Logger::LOG_INFO, "Loading texture `%s'", name.c_str());
 
         SDL_Surface* image = IMG_Load(name.c_str());
         if (!image) {
@@ -71,6 +71,49 @@ std::shared_ptr<Opengl::RenderEffect>& ResourceManager::makeEffect(const std::st
     }
 
     return this->effectCache[name];
+}
+
+std::shared_ptr<MeshData>& ResourceManager::makeMesh(const std::string& name) {
+    if (this->meshDataCache.find(name) == this->meshDataCache.end()) {
+        Logger::getInstance().log(Logger::LOG_INFO, "Loading mesh `%s'", name.c_str());
+
+        std::shared_ptr<MeshData> vertexData(new MeshData());
+        if (!vertexData->load(name)) {
+            // VertexData::load() prints errors for us
+            this->meshDataCache["nullptr"];
+        }
+
+        this->meshDataCache.insert(std::make_pair(name, vertexData));
+    }
+
+    return this->meshDataCache[name];;
+}
+
+void ResourceManager::purgeCaches() {
+    for (auto& texture: this->textureCache) {
+        if (!texture.second.unique()) {
+            Logger::getInstance().log(Logger::LOG_WARNING, "Texture %p has %d references left!",
+                    texture.second.get(), texture.second.use_count() - 1);
+        }
+    }
+
+    for (auto& effect: this->effectCache) {
+        if (!effect.second.unique()) {
+            Logger::getInstance().log(Logger::LOG_WARNING, "RenderEffect %p has %d references left!",
+                    effect.second.get(), effect.second.use_count() - 1);
+        }
+    }
+
+    for (auto& mesh: this->meshDataCache) {
+        if (!mesh.second.unique()) {
+            Logger::getInstance().log(Logger::LOG_WARNING, "Mesh %p has %d references left!",
+                    mesh.second.get(), mesh.second.use_count() - 1);
+        }
+    }
+
+    this->textureCache.clear();
+    this->effectCache.clear();
+    this->meshDataCache.clear();
 }
 
 void ResourceManager::insertEffect(const std::string& name, const std::string& source) {

@@ -23,44 +23,42 @@
 #ifndef MESH_H
 #define MESH_H
 
-#include "Vec3.h"
 #include "Mat4.h"
-#include "Quaternion.h"
 #include "Movable.h"
 #include "Scalable.h"
 #include "Rotatable.h"
+#include "Renderable.h"
 #include "NonCopyable.h"
-#include "Texture.h"
+#include "MeshData.h"
 #include "RenderEffect.h"
+#include "Texture.h"
+#include "ImageTexture.h"
 
 #define GL_GLEXT_PROTOTYPES
 #include <SDL2/SDL_opengl.h>
-#include <memory>
 
 namespace Rubik {
 
 namespace Opengl {
 
-class CubeMesh: public Common::Movable, public Common::Rotatable, public Common::Scalable, public Common::NonCopyable {
+class Mesh: public Common::Movable, public Common::Rotatable, public Common::Scalable,
+        public Common::Renderable, public Common::NonCopyable {
 public:
-    CubeMesh();
+    Mesh() {
+        glGenBuffers(2, this->buffers);
+        glGenVertexArrays(1, &this->vao);
 
-    CubeMesh(float x, float y, float z):
-            CubeMesh() {
-        this->setPosition(x, y, z);
+        this->xAngle = 0.0f;
+        this->yAngle = 0.0f;
+        this->zAngle = 0.0f;
     }
 
-    CubeMesh(const Math::Vec3& position):
-            CubeMesh() {
-        this->setPosition(position);
-    }
-
-    ~CubeMesh() {
+    ~Mesh() {
         glDeleteVertexArrays(1, &this->vao);
         glDeleteBuffers(2, this->buffers);
     }
 
-    using Movable::setPosition;
+    using Common::Movable::setPosition;
 
     void setPosition(const Math::Vec3& position) {
         this->translation.set(0, 3, position.get(Math::Vec3::X));
@@ -112,14 +110,6 @@ public:
         return this->scaling.get(2, 2);
     }
 
-    int getID() const {
-        return this->id;
-    }
-
-    void setID(int id) {
-        this->id = id;
-    }
-
     std::shared_ptr<RenderEffect>& getEffect() {
         return this->effect;
     }
@@ -133,9 +123,12 @@ public:
     }
 
     void setTexture(const std::shared_ptr<Texture>& texture) {
-        this->texture = texture;
+        if (std::dynamic_pointer_cast<Opengl::ImageTexture>(texture) != nullptr) {
+            this->texture = texture;
+        }
     }
 
+    bool load(const std::shared_ptr<Utils::MeshData>& vertexData);
     void render();
 
 private:
@@ -146,6 +139,7 @@ private:
 
     std::shared_ptr<Texture> texture;
     std::shared_ptr<RenderEffect> effect;
+    std::shared_ptr<Utils::MeshData> vertexData;
 
     Math::Mat4 translation;
     Math::Mat4 rotation;
@@ -155,13 +149,8 @@ private:
     float yAngle;
     float zAngle;
 
-    int id;
-
     GLuint buffers[2];
     GLuint vao;
-
-    static const float vertices[];
-    static const int indices[];
 };
 
 }  // namespace Opengl

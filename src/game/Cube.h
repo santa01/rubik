@@ -24,17 +24,16 @@
 #define CUBE_H
 
 #include "NonCopyable.h"
-#include "CubeMesh.h"
-#include "RenderEffect.h"
+#include "CubePart.h"
+#include "MeshData.h"
 
-#include <memory>
 #include <array>
 
 namespace Rubik {
 
 namespace Game {
 
-class Cube: public Common::NonCopyable {
+class Cube: public Common::Renderable, public Common::NonCopyable {
 public:
     static const Math::Vec3 DUMMY_SELECTION;
 
@@ -46,7 +45,17 @@ public:
         STATE_DOWN_ROTATION
     };
 
-    Cube();
+    Cube() {
+        for (int i = 0; i < 27; i++) {
+            this->cubeParts[i] = std::shared_ptr<CubePart>(new CubePart());
+            this->cubeParts[i]->setPosition(i / 9 - 1, i % 9 / 3 - 1, i % 9 % 3 - 1);
+            this->cubeParts[i]->scale(0.5f);
+            this->cubeParts[i]->setId(i);
+        }
+
+        this->rotationSpeed = 300.0f;
+        this->state = STATE_IDLE;
+    }
 
     float getRotationSpeed() const {
         return this->rotationSpeed;
@@ -73,28 +82,39 @@ public:
     }
 
     std::shared_ptr<Opengl::RenderEffect>& getEffect() {
-        return this->cubeArray[0]->getEffect();
+        return this->cubeParts[0]->getEffect();
     }
 
     void setEffect(const std::shared_ptr<Opengl::RenderEffect>& effect) {
-        for (auto& subCube: this->cubeArray) {
-            subCube->setEffect(effect);
+        for (auto& cubePart: this->cubeParts) {
+            cubePart->setEffect(effect);
         }
     }
 
     std::shared_ptr<Opengl::Texture>& getTexture() {
-        return this->cubeArray[0]->getTexture();
+        return this->cubeParts[0]->getTexture();
     }
 
     void setTexture(const std::shared_ptr<Opengl::Texture>& texture) {
-        for (auto& subCube: this->cubeArray) {
-            subCube->setTexture(texture);
+        for (auto& cubePart: this->cubeParts) {
+            cubePart->setTexture(texture);
         }
+    }
+
+    void render();
+
+    bool load(const std::shared_ptr<Utils::MeshData>& meshData) {
+        for (auto& cubePart: this->cubeParts) {
+            if (!cubePart->load(meshData)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     bool inOrder() const {
         for (int i = 0; i < 27; i++) {
-            if (this->cubeArray[i]->getID() != i) {
+            if (this->cubeParts[i]->getId() != i) {
                 return false;
             }
         }
@@ -102,14 +122,13 @@ public:
     }
 
     void shuffle(int times);
-    void render();
     void animate(float frameTime);
 
 private:
     void rotateCubeArray(CubeState state, const Math::Vec3 cubeArrayPosition);
     void rotate(CubeState state, float angle, const Math::Vec3 cubeArrayPosition);
 
-    std::array<std::shared_ptr<Opengl::CubeMesh>, 27> cubeArray;
+    std::array<std::shared_ptr<CubePart>, 27> cubeParts;
 
     Math::Vec3 selectedSubCube;
     CubeState state;

@@ -28,6 +28,7 @@
 #include "ImageTexture.h"
 #include "RenderEffect.h"
 #include "NonCopyable.h"
+#include "MeshData.h"
 
 #include <SDL2/SDL_image.h>
 #include <unordered_map>
@@ -48,28 +49,9 @@ public:
 
     std::shared_ptr<Opengl::Texture>& makeTexture(const std::string& name);
     std::shared_ptr<Opengl::RenderEffect>& makeEffect(const std::string& name);
+    std::shared_ptr<MeshData>& makeMesh(const std::string& name);
 
-    void purgeTextureCache() {
-        for (auto& texture: this->textureCache) {
-            if (!texture.second.unique()) {
-                Logger::getInstance().log(Logger::LOG_WARNING, "Texture %p has %d references left!",
-                        texture.second.get(), texture.second.use_count() - 1);
-            }
-        }
-
-        this->textureCache.clear();
-    }
-
-    void purgeEffectCache() {
-        for (auto& effect: this->effectCache) {
-            if (!effect.second.unique()) {
-                Logger::getInstance().log(Logger::LOG_WARNING, "RenderEffect %p has %d references left!",
-                        effect.second.get(), effect.second.use_count() - 1);
-            }
-        }
-
-        this->effectCache.clear();
-    }
+    void purgeCaches();
 
 private:
     ResourceManager() = default;
@@ -84,6 +66,7 @@ private:
 
     std::unordered_map<std::string, std::shared_ptr<Opengl::Texture>> textureCache;
     std::unordered_map<std::string, std::shared_ptr<Opengl::RenderEffect>> effectCache;
+    std::unordered_map<std::string, std::shared_ptr<MeshData>> meshDataCache;
 };
 
 }  // namespace Utils

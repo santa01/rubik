@@ -32,19 +32,6 @@ namespace Game {
 
 const Math::Vec3 Cube::DUMMY_SELECTION(100.0f, 100.0f, 100.0f);
 
-Cube::Cube() {
-    for (int i = 0; i < 27; i++) {
-        auto subCube = std::shared_ptr<Opengl::CubeMesh>(new Opengl::CubeMesh());
-        subCube->setPosition(i / 9 - 1, i % 9 / 3 - 1, i % 9 % 3 - 1);
-        subCube->setID(i);
-        subCube->scale(0.5f);
-        this->cubeArray[i] = subCube;
-    }
-
-    this->rotationSpeed = 300.0f;
-    this->state = STATE_IDLE;
-}
-
 void Cube::shuffle(int times) {
     std::srand(std::time(0));
 
@@ -61,14 +48,11 @@ void Cube::shuffle(int times) {
 void Cube::render() {
     auto& renderEffect = this->getEffect();
 
-    for (int i = 0; i < 27; i++) {
-        auto& subCube = this->cubeArray[i];
-
-        if (renderEffect != nullptr) {
+    if (renderEffect != nullptr) {
+        for (int i = 0; i < 27; i++) {
             renderEffect->setUniform("cubeArrayPosition", Math::Vec3(i / 9, i % 9 / 3, i % 9 % 3));
+            this->cubeParts[i]->render();
         }
-
-        subCube->render();
     }
 }
 
@@ -137,30 +121,30 @@ void Cube::rotateCubeArray(CubeState state, const Math::Vec3 cubeArrayPosition) 
         switch (state) {
             case STATE_LEFT_ROTATION:
                 plane = cubeArrayPosition.get(Math::Vec3::Y);
-                this->cubeArray[i * 9 + plane * 3 + 0].swap(this->cubeArray[2 * 9 + plane * 3 + i]);
-                this->cubeArray[2 * 9 + plane * 3 + i].swap(this->cubeArray[(2 - i) * 9 + plane * 3 + 2]);
-                this->cubeArray[(2 - i) * 9 + plane * 3 + 2].swap(this->cubeArray[0 * 9 + plane * 3 + (2 - i)]);
+                this->cubeParts[i * 9 + plane * 3 + 0].swap(this->cubeParts[2 * 9 + plane * 3 + i]);
+                this->cubeParts[2 * 9 + plane * 3 + i].swap(this->cubeParts[(2 - i) * 9 + plane * 3 + 2]);
+                this->cubeParts[(2 - i) * 9 + plane * 3 + 2].swap(this->cubeParts[0 * 9 + plane * 3 + (2 - i)]);
                 break;
 
             case STATE_RIGHT_ROTATION:
                 plane = cubeArrayPosition.get(Math::Vec3::Y);
-                this->cubeArray[(2 - i) * 9 + plane * 3 + 2].swap(this->cubeArray[0 * 9 + plane * 3 + (2 - i)]);
-                this->cubeArray[2 * 9 + plane * 3 + i].swap(this->cubeArray[(2 - i) * 9 + plane * 3 + 2]);
-                this->cubeArray[i * 9 + plane * 3 + 0].swap(this->cubeArray[2 * 9 + plane * 3 + i]);
+                this->cubeParts[(2 - i) * 9 + plane * 3 + 2].swap(this->cubeParts[0 * 9 + plane * 3 + (2 - i)]);
+                this->cubeParts[2 * 9 + plane * 3 + i].swap(this->cubeParts[(2 - i) * 9 + plane * 3 + 2]);
+                this->cubeParts[i * 9 + plane * 3 + 0].swap(this->cubeParts[2 * 9 + plane * 3 + i]);
                 break;
 
             case STATE_DOWN_ROTATION:
                 plane = cubeArrayPosition.get(Math::Vec3::X);
-                this->cubeArray[plane * 9 + i * 3 + 0].swap(this->cubeArray[plane * 9 + 2 * 3 + i]);
-                this->cubeArray[plane * 9 + 2 * 3 + i].swap(this->cubeArray[plane * 9 + (2 - i) * 3 + 2]);
-                this->cubeArray[plane * 9 + (2 - i) * 3 + 2].swap(this->cubeArray[plane * 9 + 0 * 3 + (2 - i)]);
+                this->cubeParts[plane * 9 + i * 3 + 0].swap(this->cubeParts[plane * 9 + 2 * 3 + i]);
+                this->cubeParts[plane * 9 + 2 * 3 + i].swap(this->cubeParts[plane * 9 + (2 - i) * 3 + 2]);
+                this->cubeParts[plane * 9 + (2 - i) * 3 + 2].swap(this->cubeParts[plane * 9 + 0 * 3 + (2 - i)]);
                 break;
 
             case STATE_UP_ROTATION:
                 plane = cubeArrayPosition.get(Math::Vec3::X);
-                this->cubeArray[plane * 9 + (2 - i) * 3 + 2].swap(this->cubeArray[plane * 9 + 0 * 3 + (2 - i)]);
-                this->cubeArray[plane * 9 + 2 * 3 + i].swap(this->cubeArray[plane * 9 + (2 - i) * 3 + 2]);
-                this->cubeArray[plane * 9 + i * 3 + 0].swap(this->cubeArray[plane * 9 + 2 * 3 + i]);
+                this->cubeParts[plane * 9 + (2 - i) * 3 + 2].swap(this->cubeParts[plane * 9 + 0 * 3 + (2 - i)]);
+                this->cubeParts[plane * 9 + 2 * 3 + i].swap(this->cubeParts[plane * 9 + (2 - i) * 3 + 2]);
+                this->cubeParts[plane * 9 + i * 3 + 0].swap(this->cubeParts[plane * 9 + 2 * 3 + i]);
                 break;
 
             default:
@@ -175,7 +159,7 @@ void Cube::rotate(CubeState state, float angle, const Math::Vec3 cubeArrayPositi
         case STATE_UP_ROTATION:
             for (int i = 0; i < 27; i++) {
                 if (i / 9 == cubeArrayPosition.get(Math::Vec3::X)) {
-                    this->cubeArray[i]->roll(angle);
+                    this->cubeParts[i]->roll(angle);
                 }
             }
             break;
@@ -184,7 +168,7 @@ void Cube::rotate(CubeState state, float angle, const Math::Vec3 cubeArrayPositi
         case STATE_RIGHT_ROTATION:
             for (int i = 0; i < 27; i++) {
                 if (i % 9 / 3 == cubeArrayPosition.get(Math::Vec3::Y)) {
-                    this->cubeArray[i]->yaw(angle);
+                    this->cubeParts[i]->yaw(angle);
                 }
             }
             break;

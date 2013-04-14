@@ -22,7 +22,6 @@
 
 #include "Rubik.h"
 #include "Logger.h"
-#include "Vec3.h"
 #include "ResourceManager.h"
 
 #include <fontconfig/fontconfig.h>
@@ -30,6 +29,8 @@
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
+#include <sstream>
+#include <iomanip>
 
 namespace Rubik {
 
@@ -37,14 +38,15 @@ Rubik::Rubik() {
     this->window = nullptr;
     this->context = nullptr;
 
-    this->width = 800;
-    this->height = 600;
+    this->width = 640;
+    this->height = 480;
     this->movesCounter = 0;
     this->shuffles = 20;
     this->frameTime = 0.0f;
+    this->gameTime = 0.0f;
 
     this->running = true;
-    this->state = STATE_RUNNING;
+    this->gameState = STATE_RUNNING;
 
     for (auto& buttonState: this->mouseButtonStates) {
         buttonState = SDL_RELEASED;
@@ -89,10 +91,15 @@ int Rubik::exec() {
             }
         }
 
-        this->update();
+        this->updateScene();
+        this->updateUI();
         this->render();
 
         this->frameTime = (SDL_GetTicks() - beginFrame) / 1000.0f;
+
+        if (this->gameState == STATE_RUNNING && this->keyboardButtonStates[SDL_SCANCODE_S] == SDL_RELEASED) {
+            this->gameTime += this->frameTime;
+        }
     }
 
     this->shutdown();
@@ -108,31 +115,69 @@ bool Rubik::initialize() {
 
     this->camera.setAspectRatio(this->width / (this->height / 1.0f));
     this->camera.setFov(75.0f);
-    this->camera.setPosition(-2.0f, 2.0f, -6.0f);
-    this->camera.lookAt(2.0f, -2.0f, 6.0f);
+    this->camera.setPosition(-1.8f, 1.8f, -4.0f);
+    this->camera.lookAt(2.0f, -2.2f, 4.0f);
 
-    this->cube = std::unique_ptr<Game::Cube>(new Game::Cube());
-    this->cube->setTexture(Utils::ResourceManager::getInstance().makeTexture("textures/subcube.png"));
-    this->cube->shuffle(this->shuffles);
+    this->frameBuffer = std::unique_ptr<Opengl::FrameBuffer>(new Opengl::FrameBuffer(this->width, this->height));
 
     this->defaultEffect = Utils::ResourceManager::getInstance().makeEffect("shaders/default.shader");
+    this->pickupEffect = Utils::ResourceManager::getInstance().makeEffect("shaders/pickup.shader");
+    if (this->defaultEffect == nullptr || this->pickupEffect == nullptr) {
+        return false;
+    }
+
     this->defaultEffect->setUniform("textureSampler", 0);
 
-    this->pickupEffect = Utils::ResourceManager::getInstance().makeEffect("shaders/pickup.shader");
-    this->frameBuffer = std::unique_ptr<Opengl::FrameBuffer>(new Opengl::FrameBuffer(this->width, this->height));
+    this->cube = std::unique_ptr<Game::Cube>(new Game::Cube());
+    if (!this->cube->load(Utils::ResourceManager::getInstance().makeMesh("meshes/cube.mesh"))) {
+        return false;
+    }
+
+    this->timeLabel = std::unique_ptr<Game::TextLabel>(new Game::TextLabel());
+    if (!this->timeLabel->load(Utils::ResourceManager::getInstance().makeMesh("meshes/quad.mesh"))) {
+        return false;
+    }
+
+    this->movesLabel = std::unique_ptr<Game::TextLabel>(new Game::TextLabel());
+    if (!this->movesLabel->load(Utils::ResourceManager::getInstance().makeMesh("meshes/quad.mesh"))) {
+        return false;
+    }
+
+    this->promptLabel = std::unique_ptr<Game::TextLabel>(new Game::TextLabel());
+    if (!this->promptLabel->load(Utils::ResourceManager::getInstance().makeMesh("meshes/quad.mesh"))) {
+        return false;
+    }
+
+    this->cube->setTexture(Utils::ResourceManager::getInstance().makeTexture("textures/cubepart.png"));
+    this->cube->shuffle(this->shuffles);
+
+    this->timeLabel->setEffect(this->defaultEffect);
+    this->timeLabel->setFont(this->defaultFont);
+    this->timeLabel->setPosition(-20.0f, 14.0f, 0.0f);
+
+    this->movesLabel->setEffect(this->defaultEffect);
+    this->movesLabel->setFont(this->defaultFont);
+    this->movesLabel->setPosition(-20.0f, 13.0f, 0.0f);
+
+    this->promptLabel->setEffect(this->defaultEffect);
+    this->promptLabel->setFont(this->defaultFont);
+    this->promptLabel->setPosition(-20.0f, -15.0f, 0.0f);
 
     return true;
 }
 
 void Rubik::shutdown() {
+    this->timeLabel.reset();
+    this->movesLabel.reset();
+    this->promptLabel.reset();
+    this->cube.reset();
+
     this->frameBuffer.reset();
     this->pickupEffect.reset();
     this->defaultEffect.reset();
-    this->cube.reset();
 
     Utils::Logger::getInstance().log(Utils::Logger::LOG_INFO, "Cleaning caches...");
-    Utils::ResourceManager::getInstance().purgeTextureCache();
-    Utils::ResourceManager::getInstance().purgeEffectCache();
+    Utils::ResourceManager::getInstance().purgeCaches();
 
     if (this->context) {
         SDL_GL_DeleteContext(this->context);
@@ -213,9 +258,8 @@ bool Rubik::initOpenGL() {
     Utils::Logger::getInstance().log(Utils::Logger::LOG_INFO, "OpenGL version: %s", glGetString(GL_VERSION));
 
     glEnable(GL_CULL_FACE);
-    glEnable(GL_DEPTH_TEST);
-
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glClearColor(0.8f, 0.9f, 0.8f, 1.0f);
 
     return true;
 }
@@ -267,7 +311,7 @@ bool Rubik::initFontConfig() {
 void Rubik::onMouseMotionEvent(SDL_MouseMotionEvent& event) {
     Math::Vec3 selection(Game::Cube::DUMMY_SELECTION);
 
-    switch (this->state) {
+    switch (this->gameState) {
         case STATE_RUNNING:
             if (this->mouseButtonStates[SDL_BUTTON_LEFT] == SDL_PRESSED ||
                     this->mouseButtonStates[SDL_BUTTON_RIGHT] == SDL_PRESSED) {
@@ -282,7 +326,6 @@ void Rubik::onMouseMotionEvent(SDL_MouseMotionEvent& event) {
                     this->mouseButtonStates[SDL_BUTTON_RIGHT] == SDL_RELEASED) {
                 if (selection.get(Math::Vec3::Z) == 0.0f) {  // Front facet
                     this->rotateCube(Math::Vec3(event.xrel, event.yrel, 0.0f), selection);
-                    this->movesCounter++;
                 }
             } else if (this->mouseButtonStates[SDL_BUTTON_RIGHT] == SDL_PRESSED &&
                     this->mouseButtonStates[SDL_BUTTON_LEFT] == SDL_RELEASED) {
@@ -305,7 +348,7 @@ void Rubik::onKeyboardEvent(SDL_KeyboardEvent& event) {
     static bool pauseButtonReleased = true;
     static float defaultRotationSpeed = 0.0f;
 
-    switch (this->state) {
+    switch (this->gameState) {
         case STATE_RUNNING:
             if (event.keysym.scancode == SDL_SCANCODE_S) {
                 if (event.state == SDL_PRESSED) {
@@ -325,7 +368,7 @@ void Rubik::onKeyboardEvent(SDL_KeyboardEvent& event) {
             if (event.keysym.scancode == SDL_SCANCODE_P) {
                 if (event.state == SDL_PRESSED) {
                     if (pauseButtonReleased) {
-                        this->state = (this->state == STATE_RUNNING) ? STATE_PAUSED : STATE_RUNNING;
+                        this->gameState = (this->gameState == STATE_RUNNING) ? STATE_PAUSED : STATE_RUNNING;
                         pauseButtonReleased = false;
                     }
                 } else {
@@ -340,8 +383,12 @@ void Rubik::onKeyboardEvent(SDL_KeyboardEvent& event) {
 }
 
 void Rubik::rotateCube(const Math::Vec3& direction, const Math::Vec3& position) {
-    if (direction.length() < 1.5f || this->state == STATE_PAUSED) {
+    if (direction.length() < 1.5f || this->gameState == STATE_PAUSED) {
         return;
+    }
+
+    if (this->cube->getState() == Game::Cube::STATE_IDLE && position != Game::Cube::DUMMY_SELECTION) {
+        this->movesCounter++;
     }
 
     this->cube->selectSubCube(position);
@@ -361,8 +408,8 @@ void Rubik::rotateCube(const Math::Vec3& direction, const Math::Vec3& position) 
     }
 }
 
-void Rubik::update() {
-    switch (this->state) {
+void Rubik::updateScene() {
+    switch (this->gameState) {
         case STATE_RUNNING:
             if (this->keyboardButtonStates[SDL_SCANCODE_S]) {
                 int row = std::rand() / (RAND_MAX / 1.0f) * 3;
@@ -373,11 +420,11 @@ void Rubik::update() {
             }
 
             if (this->keyboardButtonStates[SDL_SCANCODE_ESCAPE]) {
-                this->state = STATE_QUIT;
+                this->gameState = STATE_QUIT;
             }
 
             if (this->cube->inOrder()) {
-                this->state = STATE_FINISHED;
+                this->gameState = STATE_FINISHED;
             }
 
             this->cube->animate(this->frameTime);
@@ -387,7 +434,7 @@ void Rubik::update() {
             if (this->keyboardButtonStates[SDL_SCANCODE_Y]) {
                 this->running = false;
             } else if (this->keyboardButtonStates[SDL_SCANCODE_N]) {
-                this->state = STATE_RUNNING;
+                this->gameState = STATE_RUNNING;
             }
             break;
 
@@ -396,7 +443,9 @@ void Rubik::update() {
                 this->running = false;
             } else if (this->keyboardButtonStates[SDL_SCANCODE_Y]) {
                 this->cube->shuffle(this->shuffles);
-                this->state = STATE_RUNNING;
+                this->gameTime = 0.0f;
+                this->movesCounter = 0;
+                this->gameState = STATE_RUNNING;
             }
             break;
 
@@ -405,28 +454,77 @@ void Rubik::update() {
     }
 }
 
+void Rubik::updateUI() {
+    int totalTime = static_cast<int>(this->gameTime);
+    int seconds = totalTime % 60;
+    int minutes = totalTime / 60;
+    int hours = totalTime / 3600;
+
+    std::stringstream time;
+    time << "Time: " << std::setw(2) << std::setfill('0') << hours << ":"
+                     << std::setw(2) << std::setfill('0') << minutes << ":"
+                     << std::setw(2) << std::setfill('0') << seconds;
+    this->timeLabel->setText(time.str());
+
+    std::stringstream moves;
+    moves << "Moves: " << this->movesCounter;
+    this->movesLabel->setText(moves.str());
+
+    switch (this->gameState) {
+        case STATE_FINISHED:
+            this->promptLabel->setText("Done! New game? Y/N");
+            break;
+
+        case STATE_PAUSED:
+            this->promptLabel->setText("Paused");
+            break;
+
+        case STATE_QUIT:
+            this->promptLabel->setText("Quit? Y/N");
+            break;
+
+        default:
+            this->promptLabel->clear();
+    }
+}
+
 void Rubik::render() {
+    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    if (this->defaultEffect != nullptr) {
-        this->defaultEffect->setUniform("mvp", this->camera.getProjection() *
-                                               this->camera.getRotation() *
-                                               this->camera.getTranslation());
-        this->cube->setEffect(this->defaultEffect);
-        this->cube->render();
-    }
+    this->camera.setProjectionType(Game::Camera::TYPE_PERSPECTIVE);
+    this->camera.setNearPlane(0.1f);
+    this->camera.setFarPlane(20.0f);
+
+    this->defaultEffect->setUniform("mvp", this->camera.getProjection() *
+                                           this->camera.getRotation() *
+                                           this->camera.getTranslation());
+    this->cube->setEffect(this->defaultEffect);
+    this->cube->render();
 
     this->frameBuffer->bind();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    if (this->pickupEffect != nullptr) {
-        this->pickupEffect->setUniform("mvp", this->camera.getProjection() *
-                                              this->camera.getRotation() *
-                                              this->camera.getTranslation());
-        this->cube->setEffect(this->pickupEffect);
-        this->cube->render();
-    }
+    this->pickupEffect->setUniform("mvp", this->camera.getProjection() *
+                                          this->camera.getRotation() *
+                                          this->camera.getTranslation());
+    this->cube->setEffect(this->pickupEffect);
+    this->cube->render();
+
+    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    this->camera.setProjectionType(Game::Camera::TYPE_ORTHODRAPHIC);
+    this->camera.setNearPlane(-8.0f);
+    this->camera.setFarPlane(8.0f);
+
+    this->defaultEffect->setUniform("mvp", this->camera.getProjection());
+    this->timeLabel->render();
+    this->movesLabel->render();
+    this->promptLabel->render();
 
     SDL_GL_SwapWindow(this->window);
 }

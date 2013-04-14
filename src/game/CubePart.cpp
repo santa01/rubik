@@ -20,31 +20,12 @@
  * SOFTWARE.
  */
 
-#ifndef DEPTHTEXTURE_H
-#define DEPTHTEXTURE_H
-
-#include "Texture.h"
+#include "CubePart.h"
 
 namespace Rubik {
 
-namespace Opengl {
+namespace Game {
 
-class DepthTexture: public Texture {
-public:
-    DepthTexture():
-            DepthTexture(128, 128) {
-    }
-
-    DepthTexture(int width, int height) {
-        glBindTexture(GL_TEXTURE_2D, this->texture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, width, height, 0, GL_DEPTH_COMPONENT,
-                GL_UNSIGNED_BYTE, nullptr);
-        glBindTexture(GL_TEXTURE_2D, 0);
-    }
-};
-
-}  // namespace Opengl
+}  // namespace Game
 
 }  // namespace Rubik
-
-#endif  // DEPTHTEXTURE_H

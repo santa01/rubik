@@ -26,6 +26,7 @@
 #include "Camera.h"
 #include "Vec3.h"
 #include "Cube.h"
+#include "TextLabel.h"
 #include "NonCopyable.h"
 #include "FrameBuffer.h"
 
@@ -68,7 +69,8 @@ private:
 
     void rotateCube(const Math::Vec3& direction, const Math::Vec3& position);
 
-    void update();
+    void updateScene();
+    void updateUI();
     void render();
 
     SDL_Window* window;
@@ -76,6 +78,10 @@ private:
     TTF_Font* defaultFont;
 
     std::unique_ptr<Game::Cube> cube;
+    std::unique_ptr<Game::TextLabel> timeLabel;
+    std::unique_ptr<Game::TextLabel> movesLabel;
+    std::unique_ptr<Game::TextLabel> promptLabel;
+
     std::unique_ptr<Opengl::FrameBuffer> frameBuffer;
     std::shared_ptr<Opengl::RenderEffect> defaultEffect;
     std::shared_ptr<Opengl::RenderEffect> pickupEffect;
@@ -87,9 +93,10 @@ private:
     int movesCounter;
     int shuffles;
     float frameTime;
+    float gameTime;
 
     bool running;
-    GameState state;
+    GameState gameState;
 
     Uint8 mouseButtonStates[SDL_BUTTON_X2 + 1];
     Uint8 keyboardButtonStates[SDL_NUM_SCANCODES];

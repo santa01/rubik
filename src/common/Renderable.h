@@ -20,31 +20,33 @@
  * SOFTWARE.
  */
 
-#ifndef DEPTHTEXTURE_H
-#define DEPTHTEXTURE_H
+#ifndef RENDERABLE_H
+#define RENDERABLE_H
 
+#include "RenderEffect.h"
 #include "Texture.h"
+
+#include <memory>
 
 namespace Rubik {
 
-namespace Opengl {
+namespace Common {
 
-class DepthTexture: public Texture {
+class Renderable {
 public:
-    DepthTexture():
-            DepthTexture(128, 128) {
-    }
+    virtual ~Renderable() {}
 
-    DepthTexture(int width, int height) {
-        glBindTexture(GL_TEXTURE_2D, this->texture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, width, height, 0, GL_DEPTH_COMPONENT,
-                GL_UNSIGNED_BYTE, nullptr);
-        glBindTexture(GL_TEXTURE_2D, 0);
-    }
+    virtual std::shared_ptr<Opengl::RenderEffect>& getEffect() = 0;
+    virtual void setEffect(const std::shared_ptr<Opengl::RenderEffect>& effect) = 0;
+
+    virtual std::shared_ptr<Opengl::Texture>& getTexture() = 0;
+    virtual void setTexture(const std::shared_ptr<Opengl::Texture>& texture) = 0;
+
+    virtual void render() = 0;
 };
 
-}  // namespace Opengl
+}  // namespace Common
 
 }  // namespace Rubik
 
-#endif  // DEPTHTEXTURE_H
+#endif  // RENDERABLE_H

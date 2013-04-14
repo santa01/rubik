@@ -25,8 +25,6 @@
 
 #include "Texture.h"
 
-#define GL_GLEXT_PROTOTYPES
-#include <SDL2/SDL_opengl.h>
 #include <SDL2/SDL_image.h>
 #include <string>
 
@@ -48,7 +46,7 @@ public:
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
-    void load(SDL_Surface* image);
+    bool load(SDL_Surface* image);
 
 private:
     SDL_Surface* convertToRGBA(SDL_Surface* image);

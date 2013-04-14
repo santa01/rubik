@@ -24,7 +24,6 @@
 #define CAMERA_H
 
 #include "Mat4.h"
-#include "Vec3.h"
 #include "Movable.h"
 #include "Rotatable.h"
 
@@ -60,7 +59,7 @@ public:
         this->setPosition(position);
     }
 
-    using Movable::setPosition;
+    using Common::Movable::setPosition;
 
     void setPosition(const Math::Vec3& position) {
         this->translation.set(0, 3, -position.get(Math::Vec3::X));
