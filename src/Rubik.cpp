@@ -28,7 +28,6 @@
 #include <SDL2/SDL.h>
 #include <cmath>
 #include <cstdlib>
-#include <ctime>
 #include <sstream>
 #include <iomanip>
 
@@ -252,6 +251,11 @@ bool Rubik::initOpenGL() {
     if (!this->context) {
         Utils::Logger::getInstance().log(Utils::Logger::LOG_ERROR, "SDL_GL_CreateContext() failed: %s", SDL_GetError());
         return false;
+    }
+
+    if (!SDL_GL_SetSwapInterval(1)) {
+        Utils::Logger::getInstance().log(Utils::Logger::LOG_WARNING, "SDL_GL_SetSwapInterval() failed: %s",
+                SDL_GetError());
     }
 
     Utils::Logger::getInstance().log(Utils::Logger::LOG_INFO, "OpenGL vendor: %s", glGetString(GL_VENDOR));
