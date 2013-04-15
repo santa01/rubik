@@ -35,7 +35,7 @@ std::shared_ptr<Opengl::Texture>& ResourceManager::makeTexture(const std::string
         Logger::getInstance().log(Logger::LOG_INFO, "Loading texture `%s'", name.c_str());
 
         SDL_Surface* image = IMG_Load(name.c_str());
-        if (!image) {
+        if (image == nullptr) {
             Logger::getInstance().log(Logger::LOG_ERROR, "IMG_Load(%s) failed: %s", name.c_str(), IMG_GetError());
             return this->textureCache["nullptr"];
         }

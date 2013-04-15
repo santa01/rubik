@@ -199,7 +199,7 @@ void Rubik::shutdown() {
 }
 
 bool Rubik::initSDL() {
-    if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE)) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE)) {
         Utils::Logger::getInstance().log(Utils::Logger::LOG_ERROR, "SDL_Init() failed: %s", SDL_GetError());
         return false;
     }
@@ -235,25 +235,32 @@ bool Rubik::initOpenGL() {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
 
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
     Utils::Logger::getInstance().log(Utils::Logger::LOG_INFO, "Initializing %d x %d viewport",
             this->width, this->height);
     this->window = SDL_CreateWindow("Rubik's Cube", 0, 0, this->width, this->height,
             SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
-    if (!this->window) {
+    if (this->window == nullptr) {
         Utils::Logger::getInstance().log(Utils::Logger::LOG_ERROR, "SDL_CreateWindow() failed: %s", SDL_GetError());
         return false;
     }
 
     this->context = SDL_GL_CreateContext(this->window);
-    if (!this->context) {
+    if (this->context == nullptr) {
         Utils::Logger::getInstance().log(Utils::Logger::LOG_ERROR, "SDL_GL_CreateContext() failed: %s", SDL_GetError());
         return false;
     }
 
-    if (!SDL_GL_SetSwapInterval(1)) {
+    if (SDL_GL_SetSwapInterval(1)) {
         Utils::Logger::getInstance().log(Utils::Logger::LOG_WARNING, "SDL_GL_SetSwapInterval() failed: %s",
                 SDL_GetError());
     }
@@ -262,6 +269,7 @@ bool Rubik::initOpenGL() {
     Utils::Logger::getInstance().log(Utils::Logger::LOG_INFO, "OpenGL version: %s", glGetString(GL_VERSION));
 
     glEnable(GL_CULL_FACE);
+    glEnable(GL_MULTISAMPLE);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClearColor(0.8f, 0.9f, 0.8f, 1.0f);
 
@@ -289,7 +297,7 @@ bool Rubik::initFontConfig() {
     FcPattern* match = FcFontMatch(nullptr, pattern, &result);
     FcPatternDestroy(pattern);
 
-    if (!match) {
+    if (match == nullptr) {
         Utils::Logger::getInstance().log(Utils::Logger::LOG_ERROR, "FcFontMatch() failed: no `sans' font found");
         return false;
     }
@@ -298,7 +306,7 @@ bool Rubik::initFontConfig() {
     FcChar8* fontName = FcPatternFormat(match, (const FcChar8*)"%{family}");
 
     this->defaultFont = TTF_OpenFont((const char*)fontPath, 12);
-    if (!this->defaultFont) {
+    if (this->defaultFont == nullptr) {
         Utils::Logger::getInstance().log(Utils::Logger::LOG_ERROR, "TTF_OpenFont failed: %s", TTF_GetError());
         return false;
     }
