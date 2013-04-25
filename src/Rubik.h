@@ -20,8 +20,8 @@
  * SOFTWARE.
  */
 
-#ifndef POLANDBALL_H
-#define POLANDBALL_H
+#ifndef RUBIK_H
+#define RUBIK_H
 
 #include "Camera.h"
 #include "Vec3.h"
@@ -104,4 +104,4 @@ private:
 
 }  // namespace Rubik
 
-#endif  // POLANDBALL_H
+#endif  // RUBIK_H
