@@ -29,10 +29,10 @@ namespace Rubik {
 
 namespace Game {
 
-void TextLabel::renderText() {
-    int textWidth, textHeight;
+void TextLabel::render() {
+    if (this->textUpdated && this->font != nullptr) {
+        int textWidth, textHeight;
 
-    if (this->font != nullptr) {
         if (!this->text.empty()) {
             TTF_SizeUTF8(this->font, text.c_str(), &textWidth, &textHeight);
             this->quadMesh->scaleX(1.0f / this->textAspectRatio);
@@ -50,6 +50,8 @@ void TextLabel::renderText() {
             std::dynamic_pointer_cast<Opengl::ImageTexture>(this->quadMesh->getTexture())->load(dummyImage);
         }
     }
+
+    this->quadMesh->render();
 }
 
 }  // namespace Game

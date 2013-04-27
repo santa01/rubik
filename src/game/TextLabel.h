@@ -119,12 +119,7 @@ public:
         this->quadMesh->setTexture(texture);
     }
 
-    void render() {
-        if (this->textUpdated) {
-            this->renderText();
-        }
-        this->quadMesh->render();
-    }
+    void render();
 
     bool load(const std::shared_ptr<Utils::MeshData>& vertexData) {
         return this->quadMesh->load(vertexData);
@@ -135,8 +130,6 @@ public:
     }
 
 private:
-    void renderText();
-
     std::shared_ptr<Opengl::Mesh> quadMesh;
     TTF_Font* font;
 
