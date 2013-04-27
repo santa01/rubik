@@ -23,38 +23,11 @@
 #include "Cube.h"
 #include "Logger.h"
 
-#include <cstdlib>
-#include <ctime>
-
 namespace Rubik {
 
 namespace Game {
 
 const Math::Vec3 Cube::DUMMY_SELECTION(100.0f, 100.0f, 100.0f);
-
-void Cube::shuffle(int times) {
-    std::srand(std::time(0));
-
-    for (int i = 0; i < times; i++) {
-        int row = std::rand() / (RAND_MAX / 1.0f) * 3;
-        int column = std::rand() / (RAND_MAX / 1.0f) * 3;
-
-        this->selectSubCube(Math::Vec3(row, column, 0.0f));
-        this->setState(static_cast<CubeState>(std::rand() / (RAND_MAX / 1.0f) * 4 + 1));
-        this->animate(90.0f / this->rotationSpeed);
-    }
-}
-
-void Cube::render() {
-    auto& renderEffect = this->getEffect();
-
-    if (renderEffect != nullptr) {
-        for (int i = 0; i < 27; i++) {
-            renderEffect->setUniform("cubeArrayPosition", Math::Vec3(i / 9, i % 9 / 3, i % 9 % 3));
-            this->cubeParts[i]->render();
-        }
-    }
-}
 
 void Cube::animate(float frameTime) {
     static float rotationAngle = 0.0f;
@@ -88,15 +61,15 @@ void Cube::animate(float frameTime) {
             rotationAngle += stepAngle;
 
             if (currentSelectedSubCube != DUMMY_SELECTION) {
-                this->rotate(currentState, stepAngle * signCorrection, currentSelectedSubCube);
+                this->rotateCubeMeshes(currentState, stepAngle * signCorrection, currentSelectedSubCube);
                 if (rotationAngle == 90.0f) {
-                    this->rotateCubeArray(currentState, currentSelectedSubCube);
+                    this->rotateCubePresentation(currentState, currentSelectedSubCube);
                 }
             } else {
                 for (int i = 0; i < 3; i++) {
-                    this->rotate(currentState, stepAngle * signCorrection, Math::Vec3(i, i, 0.0f));
+                    this->rotateCubeMeshes(currentState, stepAngle * signCorrection, Math::Vec3(i, i, 0.0f));
                     if (rotationAngle == 90.0f) {
-                        this->rotateCubeArray(currentState, Math::Vec3(i, i, 0.0f));
+                        this->rotateCubePresentation(currentState, Math::Vec3(i, i, 0.0f));
                     }
                 }
             }
@@ -114,37 +87,37 @@ void Cube::animate(float frameTime) {
     }
 }
 
-void Cube::rotateCubeArray(CubeState state, const Math::Vec3 cubeArrayPosition) {
+void Cube::rotateCubePresentation(CubeState state, const Math::Vec3 cubeArrayPosition) {
     for (int i = 0; i < 2; i++) {
         int plane;
 
         switch (state) {
             case STATE_LEFT_ROTATION:
                 plane = cubeArrayPosition.get(Math::Vec3::Y);
-                this->cubeParts[i * 9 + plane * 3 + 0].swap(this->cubeParts[2 * 9 + plane * 3 + i]);
-                this->cubeParts[2 * 9 + plane * 3 + i].swap(this->cubeParts[(2 - i) * 9 + plane * 3 + 2]);
-                this->cubeParts[(2 - i) * 9 + plane * 3 + 2].swap(this->cubeParts[0 * 9 + plane * 3 + (2 - i)]);
+                this->cubeParts[i][plane][0].swap(this->cubeParts[2][plane][i]);
+                this->cubeParts[2][plane][i].swap(this->cubeParts[2 - i][plane][2]);
+                this->cubeParts[2 - i][plane][2].swap(this->cubeParts[0][plane][2 - i]);
                 break;
 
             case STATE_RIGHT_ROTATION:
                 plane = cubeArrayPosition.get(Math::Vec3::Y);
-                this->cubeParts[(2 - i) * 9 + plane * 3 + 2].swap(this->cubeParts[0 * 9 + plane * 3 + (2 - i)]);
-                this->cubeParts[2 * 9 + plane * 3 + i].swap(this->cubeParts[(2 - i) * 9 + plane * 3 + 2]);
-                this->cubeParts[i * 9 + plane * 3 + 0].swap(this->cubeParts[2 * 9 + plane * 3 + i]);
+                this->cubeParts[2 - i][plane][2].swap(this->cubeParts[0][plane][2 - i]);
+                this->cubeParts[2][plane][i].swap(this->cubeParts[2 - i][plane][2]);
+                this->cubeParts[i][plane][0].swap(this->cubeParts[2][plane][i]);
                 break;
 
             case STATE_DOWN_ROTATION:
                 plane = cubeArrayPosition.get(Math::Vec3::X);
-                this->cubeParts[plane * 9 + i * 3 + 0].swap(this->cubeParts[plane * 9 + 2 * 3 + i]);
-                this->cubeParts[plane * 9 + 2 * 3 + i].swap(this->cubeParts[plane * 9 + (2 - i) * 3 + 2]);
-                this->cubeParts[plane * 9 + (2 - i) * 3 + 2].swap(this->cubeParts[plane * 9 + 0 * 3 + (2 - i)]);
+                this->cubeParts[plane][i][0].swap(this->cubeParts[plane][2][i]);
+                this->cubeParts[plane][2][i].swap(this->cubeParts[plane][2 - i][2]);
+                this->cubeParts[plane][2 - i][2].swap(this->cubeParts[plane][0][2 - i]);
                 break;
 
             case STATE_UP_ROTATION:
                 plane = cubeArrayPosition.get(Math::Vec3::X);
-                this->cubeParts[plane * 9 + (2 - i) * 3 + 2].swap(this->cubeParts[plane * 9 + 0 * 3 + (2 - i)]);
-                this->cubeParts[plane * 9 + 2 * 3 + i].swap(this->cubeParts[plane * 9 + (2 - i) * 3 + 2]);
-                this->cubeParts[plane * 9 + i * 3 + 0].swap(this->cubeParts[plane * 9 + 2 * 3 + i]);
+                this->cubeParts[plane][2 - i][2].swap(this->cubeParts[plane][0][2 - i]);
+                this->cubeParts[plane][2][i].swap(this->cubeParts[plane][(2 - i)][2]);
+                this->cubeParts[plane][i][0].swap(this->cubeParts[plane][2][i]);
                 break;
 
             default:
@@ -153,22 +126,25 @@ void Cube::rotateCubeArray(CubeState state, const Math::Vec3 cubeArrayPosition) 
     }
 }
 
-void Cube::rotate(CubeState state, float angle, const Math::Vec3 cubeArrayPosition) {
+void Cube::rotateCubeMeshes(CubeState state, float angle, const Math::Vec3 cubeArrayPosition) {
+    int plane;
     switch (state) {
         case STATE_DOWN_ROTATION:
         case STATE_UP_ROTATION:
-            for (int i = 0; i < 27; i++) {
-                if (i / 9 == cubeArrayPosition.get(Math::Vec3::X)) {
-                    this->cubeParts[i]->roll(angle);
+            plane = cubeArrayPosition.get(Math::Vec3::X);
+            for (int j = 0; j < 3; j++) {
+                for (int k = 0; k < 3; k++) {
+                    this->cubeParts[plane][j][k]->roll(angle);
                 }
             }
             break;
 
         case STATE_LEFT_ROTATION:
         case STATE_RIGHT_ROTATION:
-            for (int i = 0; i < 27; i++) {
-                if (i % 9 / 3 == cubeArrayPosition.get(Math::Vec3::Y)) {
-                    this->cubeParts[i]->yaw(angle);
+            plane = cubeArrayPosition.get(Math::Vec3::Y);
+            for (int i = 0; i < 3; i++) {
+                for (int k = 0; k < 3; k++) {
+                    this->cubeParts[i][plane][k]->yaw(angle);
                 }
             }
             break;
