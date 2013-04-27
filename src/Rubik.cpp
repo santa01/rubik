@@ -345,7 +345,6 @@ void Rubik::onMouseMotionEvent(SDL_MouseMotionEvent& event) {
                     this->rotateCube(Math::Vec3(event.xrel, event.yrel, 0.0f), Game::Cube::DUMMY_SELECTION);
                 }
             }
-
             break;
 
         default:
