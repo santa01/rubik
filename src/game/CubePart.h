@@ -24,21 +24,14 @@
 #define CUBEPART_H
 
 #include "Mesh.h"
-#include "Movable.h"
-#include "Scalable.h"
-#include "Rotatable.h"
-#include "Renderable.h"
-#include "RenderEffect.h"
-#include "Texture.h"
 
 namespace Rubik {
 
 namespace Game {
 
-class CubePart: public Common::Movable, public Common::Rotatable, public Common::Scalable, public Common::Renderable {
+class CubePart: public Opengl::Mesh {
 public:
-    CubePart():
-            cubeMesh(new Opengl::Mesh()) {
+    CubePart(){
         this->id = 0;
     }
 
@@ -50,83 +43,7 @@ public:
         this->id = id;
     }
 
-    using Common::Movable::setPosition;
-
-    void setPosition(const Math::Vec3& position) {
-        this->cubeMesh->setPosition(position);
-    }
-
-    Math::Vec3 getPosition() const {
-        return this->cubeMesh->getPosition();
-    }
-
-    float getXAngle() const {
-        return this->cubeMesh->getXAngle();
-    }
-
-    float getYAngle() const {
-        return this->cubeMesh->getYAngle();
-    }
-
-    float getZAngle() const {
-        return this->cubeMesh->getZAngle();
-    }
-
-    void rotate(const Math::Vec3& vector, float angle) {
-        this->cubeMesh->rotate(vector, angle);
-    }
-
-    void scaleX(float factor) {
-        this->cubeMesh->scaleX(factor);
-    }
-
-    void scaleY(float factor) {
-        this->cubeMesh->scaleY(factor);
-    }
-
-    void scaleZ(float factor) {
-        this->cubeMesh->scaleZ(factor);
-    }
-
-    float getXFactor() const {
-        return this->cubeMesh->getXFactor();
-    }
-
-    float getYFactor() const {
-        return this->cubeMesh->getYFactor();
-    }
-
-    float getZFactor() const {
-        return this->cubeMesh->getZFactor();
-    }
-
-    std::shared_ptr<Opengl::RenderEffect>& getEffect() {
-        return this->cubeMesh->getEffect();
-    }
-
-    void setEffect(const std::shared_ptr<Opengl::RenderEffect>& effect) {
-        this->cubeMesh->setEffect(effect);
-    }
-
-    std::shared_ptr<Opengl::Texture>& getTexture() {
-        return this->cubeMesh->getTexture();
-    }
-
-    void setTexture(const std::shared_ptr<Opengl::Texture>& texture) {
-        this->cubeMesh->setTexture(texture);
-    }
-
-    void render() {
-        this->cubeMesh->render();
-    }
-
-    bool load(const std::shared_ptr<Utils::MeshData>& vertexData) {
-        return this->cubeMesh->load(vertexData);
-    }
-
 private:
-    std::shared_ptr<Opengl::Mesh> cubeMesh;
-
     int id;
 };
 

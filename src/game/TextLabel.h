@@ -24,9 +24,6 @@
 #define TEXTLABEL_H
 
 #include "Mesh.h"
-#include "Scalable.h"
-#include "Movable.h"
-#include "Renderable.h"
 #include "ImageTexture.h"
 
 #include <SDL2/SDL_ttf.h>
@@ -36,11 +33,10 @@ namespace Rubik {
 
 namespace Game {
 
-class TextLabel: public Common::Movable, public Common::Scalable, public Common::Renderable {
+class TextLabel: public Opengl::Mesh {
 public:
-    TextLabel():
-            quadMesh(new Opengl::Mesh()) {
-        this->quadMesh->setTexture(std::shared_ptr<Opengl::ImageTexture>(new Opengl::ImageTexture()));
+    TextLabel() {
+        this->setTexture(std::shared_ptr<Opengl::ImageTexture>(new Opengl::ImageTexture()));
         this->font = nullptr;
         this->textAspectRatio = 1.0f;
     }
@@ -53,7 +49,10 @@ public:
     void setText(const std::string& text) {
         if (this->text != text) {
             this->text = text;
-            this->textUpdated = true;
+
+            if (this->font != nullptr) {
+                this->renderText();
+            }
         }
     }
 
@@ -63,66 +62,11 @@ public:
 
     void setFont(TTF_Font* font) {
         this->font = font;
+        this->renderText();
     }
 
     const TTF_Font* getFont() const {
         return this->font;
-    }
-
-    using Common::Movable::setPosition;
-
-    void setPosition(const Math::Vec3& position) {
-        this->quadMesh->setPosition(position);
-    }
-
-    Math::Vec3 getPosition() const {
-        return this->quadMesh->getPosition();
-    }
-
-    void scaleX(float factor) {
-        this->quadMesh->scaleX(factor);
-    }
-
-    void scaleY(float factor) {
-        this->quadMesh->scaleY(factor);
-    }
-
-    void scaleZ(float factor) {
-        this->quadMesh->scaleZ(factor);
-    }
-
-    float getXFactor() const {
-        return this->quadMesh->getXFactor();
-    }
-
-    float getYFactor() const {
-        return this->quadMesh->getYFactor();
-    }
-
-    float getZFactor() const {
-        return this->quadMesh->getZFactor();
-    }
-
-    std::shared_ptr<Opengl::RenderEffect>& getEffect() {
-        return this->quadMesh->getEffect();
-    }
-
-    void setEffect(const std::shared_ptr<Opengl::RenderEffect>& effect) {
-        this->quadMesh->setEffect(effect);
-    }
-
-    std::shared_ptr<Opengl::Texture>& getTexture() {
-        return this->quadMesh->getTexture();
-    }
-
-    void setTexture(const std::shared_ptr<Opengl::Texture>& texture) {
-        this->quadMesh->setTexture(texture);
-    }
-
-    void render();
-
-    bool load(const std::shared_ptr<Utils::MeshData>& vertexData) {
-        return this->quadMesh->load(vertexData);
     }
 
     void clear() {
@@ -130,11 +74,11 @@ public:
     }
 
 private:
-    std::shared_ptr<Opengl::Mesh> quadMesh;
-    TTF_Font* font;
+    void renderText();
 
+    TTF_Font* font;
     std::string text;
-    bool textUpdated;
+
     float textAspectRatio;
 };
 

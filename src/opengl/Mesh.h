@@ -53,7 +53,7 @@ public:
         this->zAngle = 0.0f;
     }
 
-    ~Mesh() {
+    virtual ~Mesh() {
         glDeleteVertexArrays(1, &this->vao);
         glDeleteBuffers(2, this->buffers);
     }
