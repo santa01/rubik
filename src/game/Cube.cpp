@@ -33,22 +33,23 @@ void Cube::animate(float frameTime) {
     static float rotationAngle = 0.0f;
     static float stepAngle = 0.0f;
 
-    static Math::Vec3 currentSelectedSubCube = this->selectedSubCube;
+    static Math::Vec3 currentSelectedCubePart = this->selectedCubePart;
     static float currentRotationSpeed = this->rotationSpeed;
     static CubeState currentState = this->state;
 
-    float signCorrection = 1.0f;
-
     if (currentState == STATE_IDLE && this->state != STATE_IDLE) {
-        currentSelectedSubCube = this->selectedSubCube;
+        currentSelectedCubePart = this->selectedCubePart;
         currentRotationSpeed = this->rotationSpeed;
         currentState = this->state;
     }
+
+    float signCorrection = 1.0f;
 
     switch (currentState) {
         case STATE_RIGHT_ROTATION:
         case STATE_DOWN_ROTATION:
             signCorrection = -1.0f;
+            // Fall through
 
         case STATE_LEFT_ROTATION:
         case STATE_UP_ROTATION:
@@ -60,10 +61,10 @@ void Cube::animate(float frameTime) {
 
             rotationAngle += stepAngle;
 
-            if (currentSelectedSubCube != DUMMY_SELECTION) {
-                this->rotateCubeMeshes(currentState, stepAngle * signCorrection, currentSelectedSubCube);
+            if (currentSelectedCubePart != DUMMY_SELECTION) {
+                this->rotateCubeMeshes(currentState, stepAngle * signCorrection, currentSelectedCubePart);
                 if (rotationAngle == 90.0f) {
-                    this->rotateCubePresentation(currentState, currentSelectedSubCube);
+                    this->rotateCubePresentation(currentState, currentSelectedCubePart);
                 }
             } else {
                 for (int i = 0; i < 3; i++) {
@@ -79,7 +80,6 @@ void Cube::animate(float frameTime) {
                 currentState = STATE_IDLE;
                 rotationAngle = 0.0f;
             }
-
             break;
 
         default:

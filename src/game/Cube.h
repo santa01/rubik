@@ -72,11 +72,11 @@ public:
     }
 
     const Math::Vec3& getSelectedSubCube() const {
-        return this->selectedSubCube;
+        return this->selectedCubePart;
     }
 
     void selectSubCube(const Math::Vec3& cubeArrayPosition) {
-        this->selectedSubCube = cubeArrayPosition;
+        this->selectedCubePart = cubeArrayPosition;
     }
 
     CubeState getState() const {
@@ -178,7 +178,7 @@ private:
     void rotateCubeMeshes(CubeState state, float angle, const Math::Vec3 cubeArrayPosition);
 
     std::shared_ptr<CubePart> cubeParts[3][3][3];
-    Math::Vec3 selectedSubCube;
+    Math::Vec3 selectedCubePart;
 
     CubeState state;
     float rotationSpeed;
