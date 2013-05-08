@@ -47,7 +47,7 @@ void Mesh::rotate(const Math::Vec3& vector, float angle) {
 }
 
 bool Mesh::load(const std::shared_ptr<Utils::MeshData>& vertexData) {
-    if (vertexData->getFacesData() == nullptr || vertexData->getVerticesData() == nullptr) {
+    if (vertexData == nullptr || vertexData->getFacesData() == nullptr || vertexData->getVerticesData() == nullptr) {
         return false;
     }
 

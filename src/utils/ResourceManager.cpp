@@ -80,32 +80,32 @@ std::shared_ptr<MeshData>& ResourceManager::makeMesh(const std::string& name) {
         std::shared_ptr<MeshData> vertexData(new MeshData());
         if (!vertexData->load(name)) {
             // VertexData::load() prints errors for us
-            this->meshDataCache["nullptr"];
+            return this->meshDataCache["nullptr"];
         }
 
         this->meshDataCache.insert(std::make_pair(name, vertexData));
     }
 
-    return this->meshDataCache[name];;
+    return this->meshDataCache[name];
 }
 
 void ResourceManager::purgeCaches() {
     for (auto& texture: this->textureCache) {
-        if (!texture.second.unique()) {
+        if (!texture.second.unique() && texture.second != nullptr) {
             Logger::getInstance().log(Logger::LOG_WARNING, "Texture %p has %d references left!",
                     texture.second.get(), texture.second.use_count() - 1);
         }
     }
 
     for (auto& effect: this->effectCache) {
-        if (!effect.second.unique()) {
+        if (!effect.second.unique() && effect.second != nullptr) {
             Logger::getInstance().log(Logger::LOG_WARNING, "RenderEffect %p has %d references left!",
                     effect.second.get(), effect.second.use_count() - 1);
         }
     }
 
     for (auto& mesh: this->meshDataCache) {
-        if (!mesh.second.unique()) {
+        if (!mesh.second.unique() && mesh.second != nullptr) {
             Logger::getInstance().log(Logger::LOG_WARNING, "Mesh %p has %d references left!",
                     mesh.second.get(), mesh.second.use_count() - 1);
         }

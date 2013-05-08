@@ -147,7 +147,12 @@ bool Rubik::initialize() {
         return false;
     }
 
-    this->cube->setTexture(Utils::ResourceManager::getInstance().makeTexture("textures/cubepart.png"));
+    auto texture = Utils::ResourceManager::getInstance().makeTexture("textures/cubepart.png");
+    if (texture == nullptr) {
+        return false;
+    }
+
+    this->cube->setTexture(texture);
     this->cube->shuffle(this->shuffles);
 
     this->timeLabel->setEffect(this->defaultEffect);
