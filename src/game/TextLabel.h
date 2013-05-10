@@ -28,6 +28,7 @@
 
 #include <SDL2/SDL_ttf.h>
 #include <string>
+#include <memory>
 
 namespace Rubik {
 
@@ -37,7 +38,6 @@ class TextLabel: public Opengl::Mesh {
 public:
     TextLabel() {
         this->setTexture(std::shared_ptr<Opengl::ImageTexture>(new Opengl::ImageTexture()));
-        this->font = nullptr;
         this->textAspectRatio = 1.0f;
     }
 
@@ -60,12 +60,12 @@ public:
         return this->text;
     }
 
-    void setFont(TTF_Font* font) {
+    void setFont(const std::shared_ptr<TTF_Font>& font) {
         this->font = font;
         this->renderText();
     }
 
-    const TTF_Font* getFont() const {
+    const std::shared_ptr<TTF_Font>& getFont() const {
         return this->font;
     }
 
@@ -76,7 +76,7 @@ public:
 private:
     void renderText();
 
-    TTF_Font* font;
+    std::shared_ptr<TTF_Font> font;
     std::string text;
 
     float textAspectRatio;

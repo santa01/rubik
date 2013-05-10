@@ -24,7 +24,6 @@
 #include "Logger.h"
 #include "ResourceManager.h"
 
-#include <fontconfig/fontconfig.h>
 #include <SDL2/SDL.h>
 #include <cmath>
 #include <cstdlib>
@@ -108,7 +107,7 @@ int Rubik::exec() {
 bool Rubik::initialize() {
     Utils::Logger::getInstance().log(Utils::Logger::LOG_INFO, "Initializing...");
 
-    if (!this->initSDL() || !this->initOpenGL() || !this->initFontConfig()) {
+    if (!this->initSDL() || !this->initOpenGL()) {
         return false;
     }
 
@@ -152,19 +151,24 @@ bool Rubik::initialize() {
         return false;
     }
 
+    auto font = Utils::ResourceManager::getInstance().makeFont("fonts/dejavu-sans.ttf");
+    if (font == nullptr) {
+        return false;
+    }
+
     this->cube->setTexture(texture);
     this->cube->shuffle(this->shuffles);
 
     this->timeLabel->setEffect(this->defaultEffect);
-    this->timeLabel->setFont(this->defaultFont);
+    this->timeLabel->setFont(font);
     this->timeLabel->setPosition(-20.0f, 14.0f, 0.0f);
 
     this->movesLabel->setEffect(this->defaultEffect);
-    this->movesLabel->setFont(this->defaultFont);
+    this->movesLabel->setFont(font);
     this->movesLabel->setPosition(-20.0f, 13.0f, 0.0f);
 
     this->promptLabel->setEffect(this->defaultEffect);
-    this->promptLabel->setFont(this->defaultFont);
+    this->promptLabel->setFont(font);
     this->promptLabel->setPosition(-20.0f, -15.0f, 0.0f);
 
     return true;
@@ -187,15 +191,10 @@ void Rubik::shutdown() {
         SDL_GL_DeleteContext(this->context);
     }
 
-    if (this->defaultFont) {
-        TTF_CloseFont(this->defaultFont);
-    }
-
     if (this->window) {
         SDL_DestroyWindow(this->window);
     }
 
-    FcFini();
     IMG_Quit();
     TTF_Quit();
     SDL_Quit();
@@ -277,50 +276,6 @@ bool Rubik::initOpenGL() {
     glEnable(GL_MULTISAMPLE);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClearColor(0.8f, 0.9f, 0.8f, 1.0f);
-
-    return true;
-}
-
-bool Rubik::initFontConfig() {
-    if (!FcInit()) {
-        Utils::Logger::getInstance().log(Utils::Logger::LOG_ERROR, "FcInit() failed");
-        return false;
-    }
-
-    int fcVersion = FcGetVersion();
-    int fcMajor = fcVersion / 10000;
-    int fcMinor = (fcVersion - fcMajor * 10000) / 100;
-    int fcRevision = fcVersion - fcMajor * 10000 - fcMinor * 100;
-    Utils::Logger::getInstance().log(Utils::Logger::LOG_INFO, "Fontconfig version: %d.%d.%d",
-            fcMajor, fcMinor, fcRevision);
-
-    FcPattern* pattern = FcNameParse((const FcChar8*)"sans");
-    FcConfigSubstitute(nullptr, pattern, FcMatchPattern);
-    FcDefaultSubstitute(pattern);
-
-    FcResult result;
-    FcPattern* match = FcFontMatch(nullptr, pattern, &result);
-    FcPatternDestroy(pattern);
-
-    if (match == nullptr) {
-        Utils::Logger::getInstance().log(Utils::Logger::LOG_ERROR, "FcFontMatch() failed: no `sans' font found");
-        return false;
-    }
-
-    FcChar8* fontPath = FcPatternFormat(match, (const FcChar8*)"%{file}");
-    FcChar8* fontName = FcPatternFormat(match, (const FcChar8*)"%{family}");
-
-    this->defaultFont = TTF_OpenFont((const char*)fontPath, 12);
-    if (this->defaultFont == nullptr) {
-        Utils::Logger::getInstance().log(Utils::Logger::LOG_ERROR, "TTF_OpenFont failed: %s", TTF_GetError());
-        return false;
-    }
-
-    Utils::Logger::getInstance().log(Utils::Logger::LOG_INFO, "Using `%s' family font", fontName);
-
-    FcStrFree(fontName);
-    FcStrFree(fontPath);
-    FcPatternDestroy(match);
 
     return true;
 }

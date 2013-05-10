@@ -32,13 +32,13 @@ namespace Game {
 void TextLabel::renderText() {
     int textWidth, textHeight;
     if (!this->text.empty()) {
-        TTF_SizeUTF8(this->font, text.c_str(), &textWidth, &textHeight);
+        TTF_SizeUTF8(this->font.get(), text.c_str(), &textWidth, &textHeight);
         this->scaleX(1.0f / this->textAspectRatio);
         this->textAspectRatio = textWidth / (textHeight / 1.0f);
         this->scaleX(this->textAspectRatio);
 
         SDL_Color color = {0, 0, 0, 0};
-        SDL_Surface *textSurface = TTF_RenderUTF8_Blended(this->font, text.c_str(), color);
+        SDL_Surface *textSurface = TTF_RenderUTF8_Blended(this->font.get(), text.c_str(), color);
         std::dynamic_pointer_cast<Opengl::ImageTexture>(this->getTexture())->load(textSurface);
         SDL_FreeSurface(textSurface);
     } else {

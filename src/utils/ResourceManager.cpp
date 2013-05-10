@@ -89,6 +89,23 @@ std::shared_ptr<MeshData>& ResourceManager::makeMesh(const std::string& name) {
     return this->meshDataCache[name];
 }
 
+std::shared_ptr<TTF_Font>& ResourceManager::makeFont(const std::string& name) {
+    if (this->fontCache.find(name) == this->fontCache.end()) {
+        Logger::getInstance().log(Logger::LOG_INFO, "Loading font `%s'", name.c_str());
+
+        // Yep, its always 12pt sized
+        std::shared_ptr<TTF_Font> font(TTF_OpenFont("fonts/dejavu-sans.ttf", 12), TTF_CloseFont);
+        if (font == nullptr) {
+            Logger::getInstance().log(Logger::LOG_ERROR, "TTF_OpenFont failed: %s", TTF_GetError());
+            return this->fontCache["nullptr"];
+        }
+
+        this->fontCache.insert(std::make_pair(name, font));
+    }
+
+    return this->fontCache[name];
+}
+
 void ResourceManager::purgeCaches() {
     for (auto& texture: this->textureCache) {
         if (!texture.second.unique() && texture.second != nullptr) {
@@ -111,9 +128,17 @@ void ResourceManager::purgeCaches() {
         }
     }
 
+    for (auto& font: this->fontCache) {
+        if (!font.second.unique() && font.second != nullptr) {
+            Logger::getInstance().log(Logger::LOG_WARNING, "Font %p has %d references left!",
+                    font.second.get(), font.second.use_count() - 1);
+        }
+    }
+
     this->textureCache.clear();
     this->effectCache.clear();
     this->meshDataCache.clear();
+    this->fontCache.clear();
 }
 
 void ResourceManager::insertEffect(const std::string& name, const std::string& source) {

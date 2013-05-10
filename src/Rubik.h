@@ -32,7 +32,6 @@
 
 #include <SDL2/SDL_video.h>
 #include <SDL2/SDL_scancode.h>
-#include <SDL2/SDL_ttf.h>
 #include <memory>
 #include <vector>
 
@@ -61,7 +60,6 @@ private:
 
     bool initSDL();
     bool initOpenGL();
-    bool initFontConfig();
 
     void onMouseMotionEvent(SDL_MouseMotionEvent& event);
     void onMouseButtonEvent(SDL_MouseButtonEvent& event);
@@ -75,7 +73,6 @@ private:
 
     SDL_Window* window;
     SDL_GLContext context;
-    TTF_Font* defaultFont;
 
     std::unique_ptr<Game::Cube> cube;
     std::unique_ptr<Game::TextLabel> timeLabel;
