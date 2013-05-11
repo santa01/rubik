@@ -31,7 +31,6 @@ bool Extention::isSupported(const std::string& extention) {
 
     glGetIntegerv(GL_NUM_EXTENSIONS, &extensions);
     for (int i = 0; i < extensions; i++) {
-        // Extentions list should be cached
         if (extention.compare((char*)glGetStringi(GL_EXTENSIONS, i)) == 0) {
             return true;
         }

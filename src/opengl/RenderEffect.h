@@ -30,8 +30,7 @@
 #include "NonCopyable.h"
 #include "ShaderLoader.h"
 
-#define GL_GLEXT_PROTOTYPES
-#include <SDL2/SDL_opengl.h>
+#include <GL/glew.h>
 #include <unordered_map>
 #include <utility>
 #include <vector>

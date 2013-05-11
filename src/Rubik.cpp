@@ -24,6 +24,7 @@
 #include "Logger.h"
 #include "ResourceManager.h"
 
+#include <GL/glew.h>
 #include <SDL2/SDL.h>
 #include <cmath>
 #include <cstdlib>
@@ -263,6 +264,15 @@ bool Rubik::initOpenGL() {
         Utils::Logger::getInstance().log(Utils::Logger::LOG_ERROR, "SDL_GL_CreateContext() failed: %s", SDL_GetError());
         return false;
     }
+
+    GLenum glewError = glewInit();
+    if (glewError != GLEW_OK) {
+        Utils::Logger::getInstance().log(Utils::Logger::LOG_ERROR, "glewInit() failed: %s",
+                glewGetErrorString(glewError));
+        return false;
+    }
+
+    Utils::Logger::getInstance().log(Utils::Logger::LOG_INFO, "GLEW version: %s", glewGetString(GLEW_VERSION));
 
     if (SDL_GL_SetSwapInterval(1)) {
         Utils::Logger::getInstance().log(Utils::Logger::LOG_WARNING, "SDL_GL_SetSwapInterval() failed: %s",

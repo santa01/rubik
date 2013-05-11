@@ -23,8 +23,7 @@
 #ifndef EXTENTION_H
 #define EXTENTION_H
 
-#define GL_GLEXT_PROTOTYPES
-#include <SDL2/SDL_opengl.h>
+#include <GL/glew.h>
 #include <string>
 
 namespace Rubik {
