@@ -36,7 +36,7 @@ std::shared_ptr<Opengl::Texture>& ResourceManager::makeTexture(const std::string
 
         SDL_Surface* image = IMG_Load(name.c_str());
         if (image == nullptr) {
-            Logger::getInstance().log(Logger::LOG_ERROR, "IMG_Load(%s) failed: %s", name.c_str(), IMG_GetError());
+            Logger::getInstance().log(Logger::LOG_ERROR, "IMG_Load() failed: %s", IMG_GetError());
             return this->textureCache["nullptr"];
         }
 
@@ -94,9 +94,9 @@ std::shared_ptr<TTF_Font>& ResourceManager::makeFont(const std::string& name) {
         Logger::getInstance().log(Logger::LOG_INFO, "Loading font `%s'", name.c_str());
 
         // Yep, its always 12pt sized
-        std::shared_ptr<TTF_Font> font(TTF_OpenFont("fonts/dejavu-sans.ttf", 12), TTF_CloseFont);
+        std::shared_ptr<TTF_Font> font(TTF_OpenFont(name.c_str(), 12), TTF_CloseFont);
         if (font == nullptr) {
-            Logger::getInstance().log(Logger::LOG_ERROR, "TTF_OpenFont failed: %s", TTF_GetError());
+            Logger::getInstance().log(Logger::LOG_ERROR, "TTF_OpenFont() failed: %s", TTF_GetError());
             return this->fontCache["nullptr"];
         }
 
