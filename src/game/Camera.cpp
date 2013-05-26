@@ -97,7 +97,7 @@ void Camera::updateProjection() {
             this->projection.set(3, 2, -1.0f);
             this->projection.set(3, 3, 0.0f);
             break;
-        case TYPE_ORTHODRAPHIC:
+        case TYPE_ORTHOGRAPHIC:
             this->projection.set(0, 0, 1.0f / ((this->farPlane - this->nearPlane) *
                                        this->aspectRatio));
             this->projection.set(1, 1, 1.0f / (this->farPlane - this->nearPlane));

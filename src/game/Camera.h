@@ -35,7 +35,7 @@ class Camera: public Common::Movable, public Common::Rotatable {
 public:
     enum ProjectionType {
         TYPE_PERSPECTIVE,
-        TYPE_ORTHODRAPHIC
+        TYPE_ORTHOGRAPHIC
     };
 
     Camera() {

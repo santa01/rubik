@@ -498,7 +498,7 @@ void Rubik::render() {
     glEnable(GL_BLEND);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    this->camera.setProjectionType(Game::Camera::TYPE_ORTHODRAPHIC);
+    this->camera.setProjectionType(Game::Camera::TYPE_ORTHOGRAPHIC);
     this->camera.setNearPlane(-8.0f);
     this->camera.setFarPlane(8.0f);
 
