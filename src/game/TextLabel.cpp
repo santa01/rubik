@@ -30,9 +30,10 @@ namespace Rubik {
 namespace Game {
 
 void TextLabel::renderText() {
-    int textWidth, textHeight;
     if (!this->text.empty()) {
+        int textWidth, textHeight;
         TTF_SizeUTF8(this->font.get(), text.c_str(), &textWidth, &textHeight);
+
         this->scaleX(1.0f / this->textAspectRatio);
         this->textAspectRatio = textWidth / (textHeight / 1.0f);
         this->scaleX(this->textAspectRatio);
