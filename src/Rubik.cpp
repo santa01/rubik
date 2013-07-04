@@ -265,6 +265,7 @@ bool Rubik::initOpenGL() {
         return false;
     }
 
+    glewExperimental = GL_TRUE;
     GLenum glewError = glewInit();
     if (glewError != GLEW_OK) {
         Utils::Logger::getInstance().log(Utils::Logger::LOG_ERROR, "glewInit() failed: %s",
