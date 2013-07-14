@@ -119,7 +119,7 @@ public:
 
         return true;
     }
-    
+
     bool operator !=(const Mat3& matrix) const {
         return !(*this == matrix);
     }

@@ -33,17 +33,17 @@ Quaternion Quaternion::operator *(const Quaternion& quaternion) const {
                   this->vector[X] * quaternion.get(X) -
                   this->vector[Y] * quaternion.get(Y) -
                   this->vector[Z] * quaternion.get(Z));
-    
+
     result.set(X, this->vector[W] * quaternion.get(X) +
                   this->vector[X] * quaternion.get(W) +
                   this->vector[Y] * quaternion.get(Z) -
                   this->vector[Z] * quaternion.get(Y));
-    
+
     result.set(Y, this->vector[W] * quaternion.get(Y) +
                   this->vector[Y] * quaternion.get(W) +
                   this->vector[Z] * quaternion.get(X) -
                   this->vector[X] * quaternion.get(Z));
-    
+
     result.set(Z, this->vector[W] * quaternion.get(Z) +
                   this->vector[Z] * quaternion.get(W) +
                   this->vector[X] * quaternion.get(Y) -
@@ -55,28 +55,28 @@ Quaternion Quaternion::operator *(const Quaternion& quaternion) const {
 
 Mat4 Quaternion::extractMat4() const {
     Mat4 result;
-    
+
     result.set(0, 0, 1 - 2 * this->vector[Y] * this->vector[Y] -
                          2 * this->vector[Z] * this->vector[Z]);
     result.set(0, 1, 2 * this->vector[X] * this->vector[Y] -
                      2 * this->vector[Z] * this->vector[W]);
     result.set(0, 2, 2 * this->vector[X] * this->vector[Y] +
                      2 * this->vector[Y] * this->vector[W]);
-    
+
     result.set(1, 0, 2 * this->vector[X] * this->vector[Y] +
                      2 * this->vector[Z] * this->vector[W]);
     result.set(1, 1, 1 - 2 * this->vector[X] * this->vector[X] -
                          2 * this->vector[Z] * this->vector[Z]);
     result.set(1, 2, 2 * this->vector[Y] * this->vector[Z] -
                      2 * this->vector[X] * this->vector[W]);
-    
+
     result.set(2, 0, 2 * this->vector[X] * this->vector[Z] -
                      2 * this->vector[Y] * this->vector[W]);
     result.set(2, 1, 2 * this->vector[Y] * this->vector[Z] +
                      2 * this->vector[X] * this->vector[W]);
     result.set(2, 2, 1 - 2 * this->vector[X] * this->vector[X] -
                          2 * this->vector[Y] * this->vector[Y]);
-    
+
     return result;
 }
 

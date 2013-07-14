@@ -139,7 +139,7 @@ public:
                 return NAN;
         }
     }
-    
+
     void set(int index, float value) {
         switch (index) {
             case X:
