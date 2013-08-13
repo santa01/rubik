@@ -94,6 +94,7 @@ private:
     int width;
     int height;
     float fov;
+    float maxFps;
     int shuffles;
     bool vsync;
 

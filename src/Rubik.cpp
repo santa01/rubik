@@ -103,6 +103,12 @@ int Rubik::exec() {
         this->render();
 
         this->frameTime = (SDL_GetTicks() - beginFrame) / 1000.0f;
+        float maxFrameTime = 1.0f / this->maxFps;
+
+        if (this->frameTime < maxFrameTime) {
+            SDL_Delay((maxFrameTime - this->frameTime) * 1000);
+            this->frameTime = maxFrameTime;
+        }
 
         if (this->gameState == STATE_RUNNING && this->keyboardButtonStates[SDL_SCANCODE_S] == SDL_RELEASED) {
             this->gameTime += this->frameTime;
@@ -216,6 +222,8 @@ bool Rubik::parseCLI() {
             Utils::ArgumentParser::ArgumentType::TYPE_BOOL);
     this->arguments.addArgument('s', "shuffles", "initial cube shuffles",
             Utils::ArgumentParser::ArgumentType::TYPE_INT);
+    this->arguments.addArgument('F', "fps", "maximum fps limit",
+            Utils::ArgumentParser::ArgumentType::TYPE_INT);
     this->arguments.addArgument('f', "fov", "camera field of view",
             Utils::ArgumentParser::ArgumentType::TYPE_INT);
     this->arguments.addArgument('h', "height", "viewport height",
@@ -231,6 +239,7 @@ bool Rubik::parseCLI() {
 
     this->vsync = this->arguments.isSet("vsync");
     this->shuffles = this->arguments.isSet("shuffles") ? std::stoi(this->arguments.getOption("shuffles")) : 20;
+    this->maxFps = this->arguments.isSet("fps") ? std::stof(this->arguments.getOption("fps")) : 100.0f;
     this->fov = this->arguments.isSet("fov") ? std::stof(this->arguments.getOption("fov")) : 75.0f;
     this->height = this->arguments.isSet("height") ? std::stoi(this->arguments.getOption("height")) : 480;
     this->width = this->arguments.isSet("width") ? std::stoi(this->arguments.getOption("width")) : 640;
