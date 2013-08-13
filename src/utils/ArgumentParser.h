@@ -87,14 +87,24 @@ private:
         ArgumentType type;
         std::string value;
         std::string description;
+        char shortOption;
         bool set;
     } Argument;
 
     void help(char* application) const;
     bool validate(const std::shared_ptr<Argument>& argument, const char* value) const;
 
+    void pushArgument(char name, const std::string& longName, const std::string& description, ArgumentType type) {
+        auto argument = std::shared_ptr<Argument>(new Argument());
+        argument->type = type;
+        argument->description = description;
+        argument->shortOption = name;
+        argument->set = false;
+
+        this->arguments[longName] = argument;
+    }
+
     std::unordered_map<std::string, std::shared_ptr<Argument>> arguments;
-    std::unordered_map<std::string, char> options;
     std::unordered_map<char, std::string> aliases;
 
     std::string description;

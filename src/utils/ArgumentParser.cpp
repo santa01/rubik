@@ -42,13 +42,7 @@ bool ArgumentParser::addArgument(const std::string& longName, const std::string&
         return false;
     }
 
-    auto argument = std::shared_ptr<Argument>(new Argument());
-    argument->type = type;
-    argument->description = description;
-    argument->set = false;
-
-    this->options[longName] = 0;
-    this->arguments[longName] = argument;
+    this->pushArgument(0, longName, description, type);
     return true;
 }
 
@@ -62,11 +56,15 @@ bool ArgumentParser::addArgument(char name, const std::string& longName,
         return false;
     }
 
-    if (!this->addArgument(longName, description, type)) {
+    if (regexec(this->stringRegex.get(), longName.c_str(), 0, nullptr, 0) == REG_NOMATCH) {
         return false;
     }
 
-    this->options[longName] = name;
+    if (this->arguments.find(longName) != this->arguments.end()) {
+        return false;
+    }
+
+    this->pushArgument(name, longName, description, type);
     this->aliases[name] = longName;
     return true;
 }
@@ -76,18 +74,17 @@ bool ArgumentParser::parse(int argc, char** argv) {
     std::vector<struct option> longOptions;
 
     struct option longOption;
-    for (auto& option: this->options) {
-        longOption.name = option.first.c_str();
+    for (auto& argument: this->arguments) {
+        longOption.name = argument.first.c_str();
         longOption.flag = nullptr;
         longOption.val = 0;
+        longOption.has_arg = (argument.second->type == ArgumentType::TYPE_BOOL) ? no_argument : required_argument;
 
-        auto& argument = this->arguments.at(option.first);
-        longOption.has_arg = (argument->type == ArgumentType::TYPE_BOOL) ? no_argument : required_argument;
         longOptions.push_back(longOption);  // vector::emplace_back() kills gcc, how unfortunate
 
-        if (option.second) {
-            shortOptions << option.second;
-            if (argument->type != ArgumentType::TYPE_BOOL) {
+        if (argument.second->shortOption) {
+            shortOptions << argument.second->shortOption;
+            if (argument.second->type != ArgumentType::TYPE_BOOL) {
                 shortOptions << ":";
             }
         }
@@ -162,20 +159,18 @@ void ArgumentParser::help(char* application) const {
     }
 
     std::cout << std::endl << "Available options:" << std::endl;
-    for (auto& option: this->options) {
-        auto& argument = this->arguments.at(option.first);
-
-        std::stringstream name;
-        if (option.second) {
-            name << std::setw(5) << "-" << option.second << ", --";
+    for (auto& argument: this->arguments) {
+        std::stringstream option;
+        if (argument.second->shortOption) {
+            option << std::setw(5) << "-" << argument.second->shortOption << ", --";
         } else {
-            name << std::setw(10) << "--";
+            option << std::setw(10) << "--";
         }
 
         std::stringstream longName;
-        longName << option.first;
+        longName << argument.first;
 
-        switch (argument->type) {
+        switch (argument.second->type) {
             case ArgumentType::TYPE_INT:
                 longName << "=[int]";
                 break;
@@ -192,9 +187,9 @@ void ArgumentParser::help(char* application) const {
                 break;
         }
 
-        std::cout << name.str()
+        std::cout << option.str()
                   << std::left << std::setw(25) << longName.str()
-                  << argument->description << std::endl;
+                  << argument.second->description << std::endl;
     }
 }
 
