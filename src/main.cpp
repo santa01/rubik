@@ -23,6 +23,6 @@
 #include "Rubik.h"
 
 int main(int argc, char** argv) {
-    Rubik::Rubik rubik;
+    Rubik::Rubik rubik(argc, argv);
     return rubik.exec();
 }

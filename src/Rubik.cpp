@@ -30,17 +30,17 @@
 #include <cstdlib>
 #include <sstream>
 #include <iomanip>
+#include <string>
 
 namespace Rubik {
 
-Rubik::Rubik() {
+Rubik::Rubik(int argc, char** argv) {
     this->window = nullptr;
     this->context = nullptr;
+    this->argc = argc;
+    this->argv = argv;
 
-    this->width = 640;
-    this->height = 480;
     this->movesCounter = 0;
-    this->shuffles = 20;
     this->frameTime = 0.0f;
     this->gameTime = 0.0f;
 
@@ -57,6 +57,14 @@ Rubik::Rubik() {
 }
 
 int Rubik::exec() {
+    if (!this->parseCLI()) {
+        return ERROR_SETUP;
+    }
+
+    if (this->arguments.isSet("help")) {
+        return ERROR_OK;
+    }
+
     if (!this->initialize()) {
         this->shutdown();
         return ERROR_SETUP;
@@ -113,7 +121,7 @@ bool Rubik::initialize() {
     }
 
     this->camera.setAspectRatio(this->width / (this->height / 1.0f));
-    this->camera.setFov(75.0f);
+    this->camera.setFov(this->fov);
     this->camera.setPosition(-1.8f, 1.8f, -4.0f);
     this->camera.lookAt(2.0f, -2.2f, 4.0f);
 
@@ -203,6 +211,33 @@ void Rubik::shutdown() {
     Utils::Logger::getInstance().log(Utils::Logger::LOG_INFO, "Shutting down...");
 }
 
+bool Rubik::parseCLI() {
+    this->arguments.addArgument('v', "vsync", "vertical sync",
+            Utils::ArgumentParser::ArgumentType::TYPE_BOOL);
+    this->arguments.addArgument('s', "shuffles", "initial cube shuffles",
+            Utils::ArgumentParser::ArgumentType::TYPE_INT);
+    this->arguments.addArgument('f', "fov", "camera field of view",
+            Utils::ArgumentParser::ArgumentType::TYPE_INT);
+    this->arguments.addArgument('h', "height", "viewport height",
+            Utils::ArgumentParser::ArgumentType::TYPE_INT);
+    this->arguments.addArgument('w', "width", "viewport width",
+            Utils::ArgumentParser::ArgumentType::TYPE_INT);
+
+    this->arguments.setDescription("Rubik's Cube game");
+
+    if (!this->arguments.parse(this->argc, this->argv)) {
+        return false;
+    }
+
+    this->vsync = this->arguments.isSet("vsync");
+    this->shuffles = this->arguments.isSet("shuffles") ? std::stoi(this->arguments.getOption("shuffles")) : 20;
+    this->fov = this->arguments.isSet("fov") ? std::stof(this->arguments.getOption("fov")) : 75.0f;
+    this->height = this->arguments.isSet("height") ? std::stoi(this->arguments.getOption("height")) : 480;
+    this->width = this->arguments.isSet("width") ? std::stoi(this->arguments.getOption("width")) : 640;
+
+    return true;
+}
+
 bool Rubik::initSDL() {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_NOPARACHUTE)) {
         Utils::Logger::getInstance().log(Utils::Logger::LOG_ERROR, "SDL_Init() failed: %s", SDL_GetError());
@@ -275,7 +310,7 @@ bool Rubik::initOpenGL() {
 
     Utils::Logger::getInstance().log(Utils::Logger::LOG_INFO, "GLEW version: %s", glewGetString(GLEW_VERSION));
 
-    if (SDL_GL_SetSwapInterval(1)) {
+    if (this->vsync && SDL_GL_SetSwapInterval(1)) {
         Utils::Logger::getInstance().log(Utils::Logger::LOG_WARNING, "SDL_GL_SetSwapInterval() failed: %s",
                 SDL_GetError());
     }

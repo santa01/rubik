@@ -29,6 +29,7 @@
 #include "TextLabel.h"
 #include "NonCopyable.h"
 #include "FrameBuffer.h"
+#include "ArgumentParser.h"
 
 #include <SDL2/SDL_video.h>
 #include <SDL2/SDL_scancode.h>
@@ -39,7 +40,7 @@ namespace Rubik {
 
 class Rubik: public Common::NonCopyable {
 public:
-    Rubik();
+    Rubik(int argc, char** argv);
     int exec();
 
 private:
@@ -58,6 +59,7 @@ private:
     bool initialize();
     void shutdown();
 
+    bool parseCLI();
     bool initSDL();
     bool initOpenGL();
 
@@ -83,12 +85,19 @@ private:
     std::shared_ptr<Opengl::RenderEffect> defaultEffect;
     std::shared_ptr<Opengl::RenderEffect> pickupEffect;
 
+    Utils::ArgumentParser arguments;
     Game::Camera camera;
+
+    int argc;
+    char** argv;
 
     int width;
     int height;
-    int movesCounter;
+    float fov;
     int shuffles;
+    bool vsync;
+
+    int movesCounter;
     float frameTime;
     float gameTime;
 
