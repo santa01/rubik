@@ -329,8 +329,10 @@ bool Rubik::initOpenGL() {
 
     glEnable(GL_CULL_FACE);
     glEnable(GL_MULTISAMPLE);
+
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClearColor(0.8f, 0.9f, 0.8f, 1.0f);
+    glViewport(0, 0, this->width, this->height);
 
     return true;
 }
