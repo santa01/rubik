@@ -136,6 +136,66 @@ public:
         }
     }
 
+    /*
+     * Doolitle LU decomposition method
+     * References:
+     *   http://www.engr.colostate.edu/~thompson/hPage/CourseMat/Tutorials/CompMethods/doolittle.pdf
+     *   https://vismor.com/documents/network_analysis/matrix_algorithms/S4.SS2.php
+     *   http://en.wikipedia.org/wiki/LU_decomposition#Doolittle_algorithm
+     */
+    void decompose(Mat4& lower, Mat4& upper) const;
+
+    /*
+     * Finds inverse matrix by LU-decomposition and further equation solving:
+     * L * Z = I
+     * U * X = Z
+     * L * U * X = I
+     * where:
+     *   L and U are lower and upper triangular matrices got by Mat3::decompose(),
+     *   X and I are respective columns of inverse and identity matrices.
+     */
+    Mat4& invert();
+
+    /*
+     * Performs forward substitution for lower triangular marix.
+     * Matrix is assumed to be triangular, no check is performed.
+     * References:
+     *   http://en.wikipedia.org/wiki/Triangular_matrix#Forward_substitution
+     */
+    Vec4 solveL(const Vec4& absolute) const {
+        Vec4 solution;
+
+        for (int i = 0; i < 4; i++) {
+            solution.set(i, absolute.get(i));
+            for (int j = 0; j < i; j++) {
+                solution.set(i, solution.get(i) - this->matrix[i][j] * solution.get(j));
+            }
+            solution.set(i, solution.get(i) / this->matrix[i][i]);
+        }
+
+        return solution;
+    }
+
+    /*
+     * Performs backward substitution for upper triangular marix.
+     * Matrix is assumed to be triangular, no check is performed.
+     * References:
+     *   http://en.wikipedia.org/wiki/Triangular_matrix#Forward_substitution
+     */
+    Vec4 solveU(const Vec4& absolute) const {
+        Vec4 solution;
+
+        for (int i = 3; i > -1; i--) {
+            solution.set(i, absolute.get(i));
+            for (int j = 3; j > i; j--) {
+                solution.set(i, solution.get(i) - this->matrix[i][j] * solution.get(j));
+            }
+            solution.set(i, solution.get(i) / this->matrix[i][i]);
+        }
+
+        return solution;
+    }
+
     float get(int row, int column) const {
         if (column < 0 || column > 3 || row < 0 || row > 3) {
             return NAN;
