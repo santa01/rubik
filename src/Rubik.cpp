@@ -23,6 +23,8 @@
 #include "Rubik.h"
 #include "Logger.h"
 #include "ResourceManager.h"
+#include "Mat4.h"
+#include "Vec4.h"
 
 #include <GL/glew.h>
 #include <SDL2/SDL.h>
@@ -176,15 +178,34 @@ bool Rubik::initialize() {
 
     this->timeLabel->setEffect(this->defaultEffect);
     this->timeLabel->setFont(font);
-    this->timeLabel->setPosition(-20.0f, 14.0f, 0.0f);
 
     this->movesLabel->setEffect(this->defaultEffect);
     this->movesLabel->setFont(font);
-    this->movesLabel->setPosition(-20.0f, 13.0f, 0.0f);
 
     this->promptLabel->setEffect(this->defaultEffect);
     this->promptLabel->setFont(font);
-    this->promptLabel->setPosition(-20.0f, -15.0f, 0.0f);
+
+    Math::Mat4 ndc;
+    ndc.set(0, 0, 2.0f / (this->width / 1.0f));
+    ndc.set(0, 3, -1.0f);
+    ndc.set(1, 1, -2.0f / (this->height / 1.0f));
+    ndc.set(1, 3, 1.0f);
+
+    this->camera.setProjectionType(Game::Camera::TYPE_ORTHOGRAPHIC);
+    this->camera.setNearPlane(-8.0f);
+    this->camera.setFarPlane(8.0f);
+
+    Math::Mat4 world(this->camera.getProjection());
+    world.invert();
+
+    Math::Vec4 timePosition = (world * ndc) * Math::Vec4(20.0f, 30.0f, 0.0f, 1.0f);
+    this->timeLabel->setPosition(timePosition.extractVec3());
+
+    Math::Vec4 movesPosition = (world * ndc) * Math::Vec4(20.0f, 50.0f, 0.0f, 1.0f);
+    this->movesLabel->setPosition(movesPosition.extractVec3());
+
+    Math::Vec4 promptPosition = (world * ndc) * Math::Vec4(20.0f, this->height - 20.0f, 0.0f, 1.0f);
+    this->promptLabel->setPosition(promptPosition.extractVec3());
 
     return true;
 }
