@@ -20,10 +20,11 @@
  * SOFTWARE.
  */
 
-#ifndef TEXTLABEL_H
-#define TEXTLABEL_H
+#ifndef LABEL_H
+#define LABEL_H
 
 #include "Mesh.h"
+#include "Mat4.h"
 #include "ImageTexture.h"
 
 #include <SDL2/SDL_ttf.h>
@@ -34,25 +35,19 @@ namespace Rubik {
 
 namespace Game {
 
-class TextLabel: public Opengl::Mesh {
+class Label: public Opengl::Mesh {
 public:
-    TextLabel() {
-        this->setTexture(std::shared_ptr<Opengl::ImageTexture>(new Opengl::ImageTexture()));
-        this->textAspectRatio = 1.0f;
-    }
+    Label();
 
-    TextLabel(const std::string& text):
-            TextLabel() {
+    Label(const std::string& text):
+            Label() {
         this->setText(text);
     }
 
     void setText(const std::string& text) {
         if (this->text != text) {
             this->text = text;
-
-            if (this->font != nullptr) {
-                this->renderText();
-            }
+            this->renderText();
         }
     }
 
@@ -69,6 +64,15 @@ public:
         return this->font;
     }
 
+    void setProjection(const Math::Mat4& projection) {
+        this->projection = projection;
+        this->renderText();
+    }
+
+    const Math::Mat4& getProjection() const {
+        return this->projection;
+    }
+
     void clear() {
         this->setText("");
     }
@@ -79,11 +83,15 @@ private:
     std::shared_ptr<TTF_Font> font;
     std::string text;
 
-    float textAspectRatio;
+    Math::Mat4 projection;
+    Math::Mat4 ndc;
+
+    float widthScaleFactor;
+    float heightScaleFactor;
 };
 
 }  // namespace Game
 
 }  // namespace Rubik
 
-#endif  // TEXTLABEL_H
+#endif  // LABEL_H

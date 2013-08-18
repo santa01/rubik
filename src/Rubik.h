@@ -26,7 +26,7 @@
 #include "Camera.h"
 #include "Vec3.h"
 #include "Cube.h"
-#include "TextLabel.h"
+#include "Label.h"
 #include "NonCopyable.h"
 #include "FrameBuffer.h"
 #include "ArgumentParser.h"
@@ -77,9 +77,9 @@ private:
     SDL_GLContext context;
 
     std::unique_ptr<Game::Cube> cube;
-    std::unique_ptr<Game::TextLabel> timeLabel;
-    std::unique_ptr<Game::TextLabel> movesLabel;
-    std::unique_ptr<Game::TextLabel> promptLabel;
+    std::unique_ptr<Game::Label> timeLabel;
+    std::unique_ptr<Game::Label> movesLabel;
+    std::unique_ptr<Game::Label> promptLabel;
 
     std::unique_ptr<Opengl::FrameBuffer> frameBuffer;
     std::shared_ptr<Opengl::RenderEffect> defaultEffect;

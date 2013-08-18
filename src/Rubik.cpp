@@ -148,17 +148,17 @@ bool Rubik::initialize() {
         return false;
     }
 
-    this->timeLabel = std::unique_ptr<Game::TextLabel>(new Game::TextLabel());
+    this->timeLabel = std::unique_ptr<Game::Label>(new Game::Label());
     if (!this->timeLabel->load(Utils::ResourceManager::getInstance().makeMesh("meshes/quad.mesh"))) {
         return false;
     }
 
-    this->movesLabel = std::unique_ptr<Game::TextLabel>(new Game::TextLabel());
+    this->movesLabel = std::unique_ptr<Game::Label>(new Game::Label());
     if (!this->movesLabel->load(Utils::ResourceManager::getInstance().makeMesh("meshes/quad.mesh"))) {
         return false;
     }
 
-    this->promptLabel = std::unique_ptr<Game::TextLabel>(new Game::TextLabel());
+    this->promptLabel = std::unique_ptr<Game::Label>(new Game::Label());
     if (!this->promptLabel->load(Utils::ResourceManager::getInstance().makeMesh("meshes/quad.mesh"))) {
         return false;
     }
@@ -200,12 +200,15 @@ bool Rubik::initialize() {
 
     Math::Vec4 timePosition = (world * ndc) * Math::Vec4(20.0f, 30.0f, 0.0f, 1.0f);
     this->timeLabel->setPosition(timePosition.extractVec3());
+    this->timeLabel->setProjection(this->camera.getProjection());
 
     Math::Vec4 movesPosition = (world * ndc) * Math::Vec4(20.0f, 50.0f, 0.0f, 1.0f);
     this->movesLabel->setPosition(movesPosition.extractVec3());
+    this->movesLabel->setProjection(this->camera.getProjection());
 
     Math::Vec4 promptPosition = (world * ndc) * Math::Vec4(20.0f, this->height - 20.0f, 0.0f, 1.0f);
     this->promptLabel->setPosition(promptPosition.extractVec3());
+    this->promptLabel->setProjection(this->camera.getProjection());
 
     return true;
 }
