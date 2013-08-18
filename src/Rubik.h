@@ -96,6 +96,7 @@ private:
     float fov;
     float maxFps;
     int shuffles;
+    int samples;
     bool vsync;
 
     int movesCounter;
