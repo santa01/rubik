@@ -51,7 +51,7 @@ public:
     std::shared_ptr<Opengl::Texture>& makeTexture(const std::string& name);
     std::shared_ptr<Opengl::RenderEffect>& makeEffect(const std::string& name);
     std::shared_ptr<MeshData>& makeMesh(const std::string& name);
-    std::shared_ptr<TTF_Font>& makeFont(const std::string& name);
+    std::shared_ptr<TTF_Font>& makeFont(const std::string& name, unsigned int size);
 
     void purgeCaches();
 
@@ -69,7 +69,7 @@ private:
     std::unordered_map<std::string, std::shared_ptr<Opengl::Texture>> textureCache;
     std::unordered_map<std::string, std::shared_ptr<Opengl::RenderEffect>> effectCache;
     std::unordered_map<std::string, std::shared_ptr<MeshData>> meshDataCache;
-    std::unordered_map<std::string, std::shared_ptr<TTF_Font>> fontCache;
+    std::unordered_map<std::string, std::unordered_map<int, std::shared_ptr<TTF_Font>>> fontCache;
 };
 
 }  // namespace Utils

@@ -168,7 +168,7 @@ bool Rubik::initialize() {
         return false;
     }
 
-    auto font = Utils::ResourceManager::getInstance().makeFont("fonts/dejavu-sans.ttf");
+    auto font = Utils::ResourceManager::getInstance().makeFont("fonts/dejavu-sans.ttf", 14);
     if (font == nullptr) {
         return false;
     }
