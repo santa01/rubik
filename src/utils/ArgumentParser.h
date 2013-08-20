@@ -26,6 +26,7 @@
 #include <regex.h>  // TODO: Use C++11 regex
 #include <string>
 #include <memory>
+#include <iostream>
 #include <unordered_map>
 
 namespace Rubik {
@@ -48,11 +49,25 @@ public:
         regcomp(this->floatRegex.get(), "^(0|[1-9][[:digit:]]*)\\.[[:digit:]]+$", REG_EXTENDED | REG_NOSUB);
         regcomp(this->integerRegex.get(), "^(0|[1-9][[:digit:]]*)$", REG_EXTENDED | REG_NOSUB);
         regcomp(this->stringRegex.get(), "^[[:alnum:]](-|[[:alnum:]])*$", REG_EXTENDED | REG_NOSUB);
+
         this->addArgument("help", "display this help", ArgumentType::TYPE_BOOL);
+        this->addArgument("version", "output version information", ArgumentType::TYPE_BOOL);
     }
 
     void setDescription(const std::string& description) {
         this->description = description;
+    }
+
+    const std::string& getDescription() const {
+        return this->description;
+    }
+
+    void setVersion(const std::string& version) {
+        this->version = version;
+    }
+
+    const std::string& getVersion() const {
+        return this->version;
     }
 
     bool addArgument(const std::string& longName,const std::string& description, ArgumentType type);
@@ -91,9 +106,12 @@ private:
         bool set;
     } Argument;
 
-    void help(char* application) const;
-    bool validate(const std::shared_ptr<Argument>& argument, const char* value) const;
+    void printHelp(char* application) const;
+    void printVersion() const {
+        std::cout << this->version << std::endl;
+    }
 
+    bool validate(const std::shared_ptr<Argument>& argument, const char* value) const;
     void pushArgument(char name, const std::string& longName, const std::string& description, ArgumentType type) {
         auto argument = std::shared_ptr<Argument>(new Argument());
         argument->type = type;
@@ -108,6 +126,8 @@ private:
     std::unordered_map<char, std::string> aliases;
 
     std::string description;
+    std::string version;
+
     std::unique_ptr<regex_t, void (*)(regex_t*)> floatRegex;
     std::unique_ptr<regex_t, void (*)(regex_t*)> integerRegex;
     std::unique_ptr<regex_t, void (*)(regex_t*)> stringRegex;

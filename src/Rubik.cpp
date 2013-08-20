@@ -63,7 +63,7 @@ int Rubik::exec() {
         return ERROR_SETUP;
     }
 
-    if (this->arguments.isSet("help")) {
+    if (this->arguments.isSet("help") || this->arguments.isSet("version")) {
         return ERROR_OK;
     }
 
@@ -258,6 +258,10 @@ bool Rubik::parseCLI() {
             Utils::ArgumentParser::ArgumentType::TYPE_INT);
 
     this->arguments.setDescription("Rubik's Cube game");
+    this->arguments.setVersion("Rubik 0.0.1\n"
+            "Copyright (c) 2013 Pavlo Lavrenenko\n"
+            "This is free software: you are free to change and redistribute it.\n"
+            "The software is provided \"AS IS\", WITHOUT WARRANTY of any kind.");
 
     if (!this->arguments.parse(this->argc, this->argv)) {
         return false;

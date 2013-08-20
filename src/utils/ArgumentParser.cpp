@@ -24,7 +24,6 @@
 
 #include <getopt.h>
 #include <libgen.h>
-#include <iostream>
 #include <iomanip>
 #include <sstream>
 #include <vector>
@@ -139,20 +138,21 @@ bool ArgumentParser::parse(int argc, char** argv) {
     }
 
     char* application = basename(argv[0]);
-
     if (optind < argc) {
         std::cout << "Try '" << application << " --help' for more information." << std::endl;
         return false;
     }
 
-    if (this->isSet("help") || parseFailed) {
-        this->help(application);
+    if (this->isSet("version")) {
+        this->printVersion();
+    } else if (this->isSet("help") || parseFailed) {
+        this->printHelp(application);
     }
 
     return !parseFailed;
 }
 
-void ArgumentParser::help(char* application) const {
+void ArgumentParser::printHelp(char* application) const {
     std::cout << "Usage: " << application << " [option]..." << std::endl;
     if (!this->description.empty()) {
         std::cout << this->description << std::endl;
