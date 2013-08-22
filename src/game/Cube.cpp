@@ -29,6 +29,28 @@ namespace Game {
 
 const Math::Vec3 Cube::DUMMY_SELECTION(100.0f, 100.0f, 100.0f);
 
+bool Cube::isCompleted() {
+    // TODO: Optimize this brute-force method
+    bool completed = false;
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            if (!completed && this->isOrdered()) {
+                completed = true;
+            }
+
+            for (int k = 0; k < 3; k++) {
+                this->rotateCubePresentation(CubeState::STATE_RIGHT_ROTATION, Math::Vec3(k, k, 0.0f));
+            }
+        }
+
+        for (int k = 0; k < 3; k++) {
+            this->rotateCubePresentation(CubeState::STATE_UP_ROTATION, Math::Vec3(k, k, 0.0f));
+        }
+    }
+
+    return completed;
+}
+
 void Cube::animate(float frameTime) {
     static float rotationAngle = 0.0f;
     static float stepAngle = 0.0f;

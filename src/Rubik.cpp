@@ -482,7 +482,7 @@ void Rubik::updateScene() {
                 this->gameState = STATE_QUIT;
             }
 
-            if (this->cube->inOrder()) {
+            if (this->cube->isCompleted()) {
                 this->gameState = STATE_FINISHED;
             }
 

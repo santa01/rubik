@@ -141,22 +141,11 @@ public:
                 }
             }
         }
+
         return true;
     }
 
-    bool inOrder() const {
-        int id = 0;
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                for (int k = 0; k < 3; k++) {
-                    if (this->cubeParts[i][j][k]->getId() != id++) {
-                        return false;
-                    }
-                }
-            }
-        }
-        return true;
-    }
+    bool isCompleted();
 
     void shuffle(int times) {
         std::srand(std::time(0));
@@ -176,6 +165,21 @@ public:
 private:
     void rotateCubePresentation(CubeState state, const Math::Vec3 cubeArrayPosition);
     void rotateCubeMeshes(CubeState state, float angle, const Math::Vec3 cubeArrayPosition);
+
+    bool isOrdered() const {
+        int id = 0;
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                for (int k = 0; k < 3; k++) {
+                    if (this->cubeParts[i][j][k]->getId() != id++) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
 
     std::shared_ptr<CubePart> cubeParts[3][3][3];
     Math::Vec3 selectedCubePart;
