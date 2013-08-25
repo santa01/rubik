@@ -258,7 +258,7 @@ bool Rubik::parseCLI() {
             Utils::ArgumentParser::ArgumentType::TYPE_INT);
 
     this->arguments.setDescription("Rubik's Cube game");
-    this->arguments.setVersion("Rubik 0.1.0\n"
+    this->arguments.setVersion("Rubik 0.1.1\n"
             "Copyright (c) 2013 Pavlo Lavrenenko\n"
             "This is free software: you are free to change and redistribute it.\n"
             "The software is provided \"AS IS\", WITHOUT WARRANTY of any kind.");
