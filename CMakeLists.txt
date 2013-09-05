@@ -23,6 +23,7 @@ pkg_search_module(GLEW REQUIRED glew)
 
 set (RUBIK_DATADIR ${CMAKE_INSTALL_PREFIX}/share/rubik CACHE PATH "Data directory")
 set (RUBIK_INCLUDE "src" "src/common" "src/game" "src/math" "src/opengl" "src/utils")
+set (RUBIK_RESOURCES "fonts" "meshes" "shaders" "textures")
 
 file (GLOB_RECURSE RUBIK_SOURCES "src/*.cpp")
 include_directories (${RUBIK_INCLUDE} ${PROJECT_BINARY_DIR})
@@ -41,3 +42,6 @@ target_link_libraries (${RUBIK_EXECUTABLE} ${SDL2_LIBRARIES})
 target_link_libraries (${RUBIK_EXECUTABLE} ${SDL2_TTF_LIBRARIES})
 target_link_libraries (${RUBIK_EXECUTABLE} ${SDL2_IMAGE_LIBRARIES})
 target_link_libraries (${RUBIK_EXECUTABLE} ${GLEW_LIBRARIES})
+
+install (TARGETS ${RUBIK_EXECUTABLE} DESTINATION bin)
+install (DIRECTORY ${RUBIK_RESOURCES} DESTINATION ${RUBIK_DATADIR})
