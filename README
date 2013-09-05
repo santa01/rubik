@@ -14,6 +14,15 @@ This application was never designed to be a ready for production software
 but a training project. Game renderer uses OpenGL 3.3 (as defined in shaders),
 game requires SDL2, SDL2_image and SDL2_ttf libraries to be installed.
 
+By default rubik will try to load resources from /usr/local/share/rubik.
+You can override this path at configure time:
+
+    cmake -DRUBIK_DATADIR="/path/to/data/dir" .
+
+For development its essential to use the project root as data directory:
+
+    cmake -DRUBIK_DATADIR="." .
+
 If you are interested in the game, you can contact me via santa.ssh@gmail.com
 
 The game is licensed under MIT license, see COPYING for details.

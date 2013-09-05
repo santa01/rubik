@@ -23,6 +23,7 @@
 #include "Rubik.h"
 #include "Logger.h"
 #include "ResourceManager.h"
+#include "Config.h"
 #include "Mat4.h"
 #include "Vec4.h"
 
@@ -135,8 +136,8 @@ bool Rubik::initialize() {
 
     this->frameBuffer = std::unique_ptr<Opengl::FrameBuffer>(new Opengl::FrameBuffer(this->width, this->height));
 
-    this->defaultEffect = Utils::ResourceManager::getInstance().makeEffect("shaders/default.shader");
-    this->pickupEffect = Utils::ResourceManager::getInstance().makeEffect("shaders/pickup.shader");
+    this->defaultEffect = Utils::ResourceManager::getInstance().makeEffect(RUBIK_DATADIR "/shaders/default.shader");
+    this->pickupEffect = Utils::ResourceManager::getInstance().makeEffect(RUBIK_DATADIR "/shaders/pickup.shader");
     if (this->defaultEffect == nullptr || this->pickupEffect == nullptr) {
         return false;
     }
@@ -144,31 +145,31 @@ bool Rubik::initialize() {
     this->defaultEffect->setUniform("textureSampler", 0);
 
     this->cube = std::unique_ptr<Game::Cube>(new Game::Cube());
-    if (!this->cube->load(Utils::ResourceManager::getInstance().makeMesh("meshes/cube.mesh"))) {
+    if (!this->cube->load(Utils::ResourceManager::getInstance().makeMesh(RUBIK_DATADIR "/meshes/cube.mesh"))) {
         return false;
     }
 
     this->timeLabel = std::unique_ptr<Game::Label>(new Game::Label());
-    if (!this->timeLabel->load(Utils::ResourceManager::getInstance().makeMesh("meshes/quad.mesh"))) {
+    if (!this->timeLabel->load(Utils::ResourceManager::getInstance().makeMesh(RUBIK_DATADIR "/meshes/quad.mesh"))) {
         return false;
     }
 
     this->movesLabel = std::unique_ptr<Game::Label>(new Game::Label());
-    if (!this->movesLabel->load(Utils::ResourceManager::getInstance().makeMesh("meshes/quad.mesh"))) {
+    if (!this->movesLabel->load(Utils::ResourceManager::getInstance().makeMesh(RUBIK_DATADIR "/meshes/quad.mesh"))) {
         return false;
     }
 
     this->promptLabel = std::unique_ptr<Game::Label>(new Game::Label());
-    if (!this->promptLabel->load(Utils::ResourceManager::getInstance().makeMesh("meshes/quad.mesh"))) {
+    if (!this->promptLabel->load(Utils::ResourceManager::getInstance().makeMesh(RUBIK_DATADIR "/meshes/quad.mesh"))) {
         return false;
     }
 
-    auto texture = Utils::ResourceManager::getInstance().makeTexture("textures/cubepart.png");
+    auto texture = Utils::ResourceManager::getInstance().makeTexture(RUBIK_DATADIR "/textures/cubepart.png");
     if (texture == nullptr) {
         return false;
     }
 
-    auto font = Utils::ResourceManager::getInstance().makeFont("fonts/dejavu-sans.ttf", 14);
+    auto font = Utils::ResourceManager::getInstance().makeFont(RUBIK_DATADIR "/fonts/dejavu-sans.ttf", 14);
     if (font == nullptr) {
         return false;
     }
@@ -257,11 +258,8 @@ bool Rubik::parseCLI() {
     this->arguments.addArgument('w', "width", "viewport width",
             Utils::ArgumentParser::ArgumentType::TYPE_INT);
 
-    this->arguments.setDescription("Rubik's Cube game");
-    this->arguments.setVersion("Rubik 0.1.1\n"
-            "Copyright (c) 2013 Pavlo Lavrenenko\n"
-            "This is free software: you are free to change and redistribute it.\n"
-            "The software is provided \"AS IS\", WITHOUT WARRANTY of any kind.");
+    this->arguments.setDescription(RUBIK_DESCRIPTION);
+    this->arguments.setVersion(RUBIK_VERSION);
 
     if (!this->arguments.parse(this->argc, this->argv)) {
         return false;
