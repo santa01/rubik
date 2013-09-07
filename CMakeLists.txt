@@ -1,4 +1,5 @@
 cmake_minimum_required (VERSION 2.6)
+cmake_policy(SET CMP0015 NEW)
 project (RUBIK)
 
 if (CMAKE_COMPILER_IS_GNUCC)
@@ -22,11 +23,15 @@ pkg_search_module(SDL2_IMAGE REQUIRED SDL2_image)
 pkg_search_module(GLEW REQUIRED glew)
 
 set (RUBIK_DATADIR ${CMAKE_INSTALL_PREFIX}/share/rubik CACHE PATH "Data directory")
-set (RUBIK_INCLUDE "src" "src/common" "src/game" "src/math" "src/opengl" "src/utils")
 set (RUBIK_RESOURCES "fonts" "meshes" "shaders" "textures")
+set (RUBIK_INCLUDE "src" "src/common" "src/game" "src/math" "src/opengl" "src/utils")
+
+set (MATH_LIBRARY "math")
+set (MATH_INCLUDE ${MATH_LIBRARY}/src)
+add_subdirectory (${MATH_LIBRARY})
 
 file (GLOB_RECURSE RUBIK_SOURCES "src/*.cpp")
-include_directories (${RUBIK_INCLUDE} ${PROJECT_BINARY_DIR})
+include_directories (${RUBIK_INCLUDE} ${MATH_INCLUDE} ${PROJECT_BINARY_DIR})
 
 set (RUBIK_NAME "Rubik")
 set (RUBIK_DESCRIPTION "Rubik's Cube game")
@@ -36,12 +41,14 @@ configure_file (Config.h.in Config.h @ONLY)
 
 set (RUBIK_EXECUTABLE "rubik")
 add_executable (${RUBIK_EXECUTABLE} ${RUBIK_SOURCES})
+add_dependencies (${RUBIK_EXECUTABLE} ${MATH_LIBRARY})
 
 target_link_libraries (${RUBIK_EXECUTABLE} ${OPENGL_LIBRARIES})
 target_link_libraries (${RUBIK_EXECUTABLE} ${SDL2_LIBRARIES})
 target_link_libraries (${RUBIK_EXECUTABLE} ${SDL2_TTF_LIBRARIES})
 target_link_libraries (${RUBIK_EXECUTABLE} ${SDL2_IMAGE_LIBRARIES})
 target_link_libraries (${RUBIK_EXECUTABLE} ${GLEW_LIBRARIES})
+target_link_libraries (${RUBIK_EXECUTABLE} ${MATH_LIBRARY}-shared)
 
 install (TARGETS ${RUBIK_EXECUTABLE} DESTINATION bin)
 install (DIRECTORY ${RUBIK_RESOURCES} DESTINATION ${RUBIK_DATADIR})
