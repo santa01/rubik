@@ -23,7 +23,7 @@
 #ifndef ROTATABLE_H
 #define ROTATABLE_H
 
-#include "Vec3.h"
+#include <Vec3.h>
 
 namespace Rubik {
 

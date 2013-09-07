@@ -23,14 +23,14 @@
 #ifndef RENDEREFFECT_H
 #define RENDEREFFECT_H
 
-#include "Mat4.h"
-#include "Mat3.h"
-#include "Vec4.h"
-#include "Vec3.h"
 #include "NonCopyable.h"
 #include "ShaderLoader.h"
 
 #include <GL/glew.h>
+#include <Mat4.h>
+#include <Mat3.h>
+#include <Vec4.h>
+#include <Vec3.h>
 #include <unordered_map>
 #include <utility>
 #include <vector>

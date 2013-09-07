@@ -23,9 +23,10 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include "Mat4.h"
 #include "Movable.h"
 #include "Rotatable.h"
+
+#include <Mat4.h>
 
 namespace Rubik {
 

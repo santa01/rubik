@@ -23,7 +23,6 @@
 #ifndef MESH_H
 #define MESH_H
 
-#include "Mat4.h"
 #include "Movable.h"
 #include "Scalable.h"
 #include "Rotatable.h"
@@ -35,6 +34,7 @@
 #include "ImageTexture.h"
 
 #include <GL/glew.h>
+#include <Mat4.h>
 
 namespace Rubik {
 

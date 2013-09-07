@@ -24,7 +24,6 @@
 #define RUBIK_H
 
 #include "Camera.h"
-#include "Vec3.h"
 #include "Cube.h"
 #include "Label.h"
 #include "NonCopyable.h"
@@ -33,6 +32,7 @@
 
 #include <SDL2/SDL_video.h>
 #include <SDL2/SDL_scancode.h>
+#include <Vec3.h>
 #include <memory>
 #include <vector>
 

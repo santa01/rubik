@@ -24,10 +24,10 @@
 #define LABEL_H
 
 #include "Mesh.h"
-#include "Mat4.h"
 #include "ImageTexture.h"
 
 #include <SDL2/SDL_ttf.h>
+#include <Mat4.h>
 #include <string>
 #include <memory>
 

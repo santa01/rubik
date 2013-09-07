@@ -23,7 +23,7 @@
 #ifndef MOVABLE_H
 #define MOVABLE_H
 
-#include "Vec3.h"
+#include <Vec3.h>
 
 namespace Rubik {
 

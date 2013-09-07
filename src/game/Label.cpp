@@ -21,9 +21,9 @@
  */
 
 #include "Label.h"
-#include "Vec4.h"
 
 #include <SDL2/SDL_image.h>
+#include <Vec4.h>
 
 namespace Rubik {
 

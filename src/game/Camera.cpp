@@ -21,9 +21,9 @@
  */
 
 #include "Camera.h"
-#include "Mat3.h"
-#include "Quaternion.h"
 
+#include <Mat3.h>
+#include <Quaternion.h>
 #include <cmath>
 
 namespace Rubik {

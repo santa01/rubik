@@ -24,11 +24,11 @@
 #include "Logger.h"
 #include "ResourceManager.h"
 #include "Config.h"
-#include "Mat4.h"
-#include "Vec4.h"
 
 #include <GL/glew.h>
 #include <SDL2/SDL.h>
+#include <Mat4.h>
+#include <Vec4.h>
 #include <cmath>
 #include <cstdlib>
 #include <sstream>

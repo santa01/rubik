@@ -21,7 +21,8 @@
  */
 
 #include "Mesh.h"
-#include "Quaternion.h"
+
+#include <Quaternion.h>
 
 namespace Rubik {
 
