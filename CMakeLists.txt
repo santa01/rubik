@@ -1,5 +1,4 @@
 cmake_minimum_required (VERSION 2.6)
-cmake_policy(SET CMP0015 NEW)
 project (RUBIK)
 
 if (CMAKE_COMPILER_IS_GNUCC)
@@ -35,7 +34,7 @@ include_directories (${RUBIK_INCLUDE} ${MATH_INCLUDE} ${PROJECT_BINARY_DIR})
 
 set (RUBIK_NAME "Rubik")
 set (RUBIK_DESCRIPTION "Rubik's Cube game")
-set (RUBIK_VERSION 0.1.4)
+set (RUBIK_VERSION 0.1.5)
 
 configure_file (Config.h.in Config.h @ONLY)
 
