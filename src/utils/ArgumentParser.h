@@ -23,7 +23,6 @@
 #ifndef ARGUMENTPARSER_H
 #define ARGUMENTPARSER_H
 
-#include <regex.h>  // TODO: Use C++11 regex
 #include <string>
 #include <memory>
 #include <iostream>
@@ -42,14 +41,7 @@ public:
         TYPE_STRING
     };
 
-    ArgumentParser():
-            floatRegex(new regex_t, regfree),
-            integerRegex(new regex_t, regfree),
-            stringRegex(new regex_t, regfree) {
-        regcomp(this->floatRegex.get(), "^(0|[1-9][[:digit:]]*)\\.[[:digit:]]+$", REG_EXTENDED | REG_NOSUB);
-        regcomp(this->integerRegex.get(), "^(0|[1-9][[:digit:]]*)$", REG_EXTENDED | REG_NOSUB);
-        regcomp(this->stringRegex.get(), "^[[:alnum:]](-|[[:alnum:]])*$", REG_EXTENDED | REG_NOSUB);
-
+    ArgumentParser() {
         this->addArgument("help", "display this help", ArgumentType::TYPE_BOOL);
         this->addArgument("version", "output version information", ArgumentType::TYPE_BOOL);
     }
@@ -127,10 +119,6 @@ private:
 
     std::string description;
     std::string version;
-
-    std::unique_ptr<regex_t, void (*)(regex_t*)> floatRegex;
-    std::unique_ptr<regex_t, void (*)(regex_t*)> integerRegex;
-    std::unique_ptr<regex_t, void (*)(regex_t*)> stringRegex;
 };
 
 }  // namespace Utils

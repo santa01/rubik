@@ -250,9 +250,9 @@ bool Rubik::parseCLI() {
     this->arguments.addArgument('S', "samples", "MSAA samples",
             Utils::ArgumentParser::ArgumentType::TYPE_INT);
     this->arguments.addArgument('F', "fps", "maximum fps limit",
-            Utils::ArgumentParser::ArgumentType::TYPE_INT);
+            Utils::ArgumentParser::ArgumentType::TYPE_FLOAT);
     this->arguments.addArgument('f', "fov", "camera field of view",
-            Utils::ArgumentParser::ArgumentType::TYPE_INT);
+            Utils::ArgumentParser::ArgumentType::TYPE_FLOAT);
     this->arguments.addArgument('h', "height", "viewport height",
             Utils::ArgumentParser::ArgumentType::TYPE_INT);
     this->arguments.addArgument('w', "width", "viewport width",

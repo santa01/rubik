@@ -23,17 +23,22 @@
 #include "ArgumentParser.h"
 
 #include <getopt.h>
-#include <libgen.h>
+#include <libgen.h>  // basename()
 #include <iomanip>
 #include <sstream>
 #include <vector>
+#include <algorithm>
 
 namespace Rubik {
 
 namespace Utils {
 
 bool ArgumentParser::addArgument(const std::string& longName, const std::string& description, ArgumentType type) {
-    if (regexec(this->stringRegex.get(), longName.c_str(), 0, nullptr, 0) == REG_NOMATCH) {
+    auto status = std::find_if_not(longName.begin(), longName.end(), [](char c) -> bool {
+        return (std::isalnum(c) || c == '-');
+    });
+
+    if (status != longName.end()) {
         return false;
     }
 
@@ -55,7 +60,11 @@ bool ArgumentParser::addArgument(char name, const std::string& longName,
         return false;
     }
 
-    if (regexec(this->stringRegex.get(), longName.c_str(), 0, nullptr, 0) == REG_NOMATCH) {
+    auto status = std::find_if_not(longName.begin(), longName.end(), [](char c) -> bool {
+        return (std::isalnum(c) || c == '-');
+    });
+
+    if (status != longName.end()) {
         return false;
     }
 
@@ -109,10 +118,12 @@ bool ArgumentParser::parse(int argc, char** argv) {
         switch (option) {
             case 0:
                 argument = this->arguments.at(optionsArray[optionIndex].name);
-                if ((parseFailed = !this->validate(argument, optarg)) == false) {
-                    if (optionsArray[optionIndex].has_arg != no_argument) {
+                if (optionsArray[optionIndex].has_arg != no_argument) {
+                    if ((parseFailed = !this->validate(argument, optarg)) == false) {
                         argument->value = optarg;
+                        argument->set = true;
                     }
+                } else {
                     argument->set = true;
                 }
                 break;
@@ -121,10 +132,12 @@ bool ArgumentParser::parse(int argc, char** argv) {
                 auto alias = this->aliases.find(option);
                 if (alias != this->aliases.end()) {
                     argument = this->arguments.at(alias->second);
-                    if ((parseFailed = !this->validate(argument, optarg)) == false) {
-                        if (argument->type != ArgumentType::TYPE_BOOL) {
+                    if (argument->type != ArgumentType::TYPE_BOOL) {
+                        if ((parseFailed = !this->validate(argument, optarg)) == false) {
                             argument->value = optarg;
+                            argument->set = true;
                         }
+                    } else {
                         argument->set = true;
                     }
                 } else {
@@ -137,16 +150,14 @@ bool ArgumentParser::parse(int argc, char** argv) {
         }
     }
 
-    char* application = basename(argv[0]);
-    if (optind < argc) {
-        std::cout << "Try '" << application << " --help' for more information." << std::endl;
-        return false;
+    if (!parseFailed && optind < argc) {
+        parseFailed = true;
     }
 
     if (this->isSet("version")) {
         this->printVersion();
     } else if (this->isSet("help") || parseFailed) {
-        this->printHelp(application);
+        this->printHelp(basename(argv[0]));
     }
 
     return !parseFailed;
@@ -194,22 +205,25 @@ void ArgumentParser::printHelp(char* application) const {
 }
 
 bool ArgumentParser::validate(const std::shared_ptr<Argument>& argument, const char* value) const {
-    regex_t* regex = nullptr;
+    std::stringstream testValue(value);
+
+    int intValue;
+    float floatValue;
 
     switch (argument->type) {
         case ArgumentType::TYPE_FLOAT:
-            regex = this->floatRegex.get();
+            testValue >> std::noskipws >> floatValue;
             break;
 
         case ArgumentType::TYPE_INT:
-            regex = this->integerRegex.get();
+            testValue >> std::noskipws >> intValue;
             break;
 
         default:
             return true;
     }
 
-    return (regexec(regex, value, 0, nullptr, 0) == REG_NOERROR);
+    return (testValue.eof() && !testValue.fail());
 }
 
 }  // namespace Utils
