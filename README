@@ -12,7 +12,7 @@ Controls:
 
 This application was never designed to be a ready for production software
 but a training project. Game renderer uses OpenGL 3.3 (as defined in shaders),
-game requires SDL2, SDL2_image and SDL2_ttf libraries to be installed.
+game requires SDL2, SDL2_image, SDL2_ttf and GLEW libraries to be installed.
 Rubik also requires external math library (https://github.com/santa01/math)
 which has been merged into math subtree. To update math dependency you can do:
 
