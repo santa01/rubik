@@ -266,12 +266,12 @@ bool Rubik::parseCLI() {
     }
 
     this->vsync = this->arguments.isSet("vsync");
-    this->shuffles = this->arguments.isSet("shuffles") ? std::stoi(this->arguments.getOption("shuffles")) : 20;
-    this->samples = this->arguments.isSet("samples") ? std::stoi(this->arguments.getOption("samples")) : 0;
-    this->maxFps = this->arguments.isSet("fps") ? std::stof(this->arguments.getOption("fps")) : 100.0f;
-    this->fov = this->arguments.isSet("fov") ? std::stof(this->arguments.getOption("fov")) : 75.0f;
-    this->height = this->arguments.isSet("height") ? std::stoi(this->arguments.getOption("height")) : 480;
-    this->width = this->arguments.isSet("width") ? std::stoi(this->arguments.getOption("width")) : 640;
+    this->shuffles = this->arguments.isSet("shuffles") ? atoi(this->arguments.getOption("shuffles").c_str()) : 20;
+    this->samples = this->arguments.isSet("samples") ? atoi(this->arguments.getOption("samples").c_str()) : 0;
+    this->maxFps = this->arguments.isSet("fps") ? atof(this->arguments.getOption("fps").c_str()) : 100.0f;
+    this->fov = this->arguments.isSet("fov") ? atof(this->arguments.getOption("fov").c_str()) : 75.0f;
+    this->height = this->arguments.isSet("height") ? atoi(this->arguments.getOption("height").c_str()) : 480;
+    this->width = this->arguments.isSet("width") ? atoi(this->arguments.getOption("width").c_str()) : 640;
 
     return true;
 }
