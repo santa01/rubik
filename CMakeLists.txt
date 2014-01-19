@@ -20,17 +20,16 @@ pkg_search_module(SDL2 REQUIRED sdl2)
 pkg_search_module(SDL2_TTF REQUIRED SDL2_ttf)
 pkg_search_module(SDL2_IMAGE REQUIRED SDL2_image)
 pkg_search_module(GLEW REQUIRED glew)
+pkg_search_module(MATH REQUIRED math)
 
-set (RUBIK_DATADIR ${CMAKE_INSTALL_PREFIX}/share/rubik CACHE PATH "Data directory")
+set (RUBIK_DATADIR ${CMAKE_INSTALL_PREFIX}/share/rubik
+     CACHE PATH "Data directory")
 set (RUBIK_RESOURCES "fonts" "meshes" "shaders" "textures")
-set (RUBIK_INCLUDE "src" "src/common" "src/game" "src/math" "src/opengl" "src/utils")
-
-set (MATH_LIBRARY "math")
-set (MATH_INCLUDE ${MATH_LIBRARY}/src)
-add_subdirectory (${MATH_LIBRARY})
+set (RUBIK_INCLUDE "src" "src/common" "src/game" "src/opengl" "src/utils")
 
 file (GLOB_RECURSE RUBIK_SOURCES "src/*.cpp")
-include_directories (${RUBIK_INCLUDE} ${MATH_INCLUDE} ${PROJECT_BINARY_DIR})
+include_directories (${RUBIK_INCLUDE} ${MATH_INCLUDE_DIRS}
+                     ${PROJECT_BINARY_DIR})
 
 set (RUBIK_NAME "Rubik")
 set (RUBIK_DESCRIPTION "Rubik's Cube game")
@@ -40,14 +39,13 @@ configure_file (Config.h.in Config.h @ONLY)
 
 set (RUBIK_EXECUTABLE "rubik")
 add_executable (${RUBIK_EXECUTABLE} ${RUBIK_SOURCES})
-add_dependencies (${RUBIK_EXECUTABLE} ${MATH_LIBRARY})
 
 target_link_libraries (${RUBIK_EXECUTABLE} ${OPENGL_LIBRARIES})
 target_link_libraries (${RUBIK_EXECUTABLE} ${SDL2_LIBRARIES})
 target_link_libraries (${RUBIK_EXECUTABLE} ${SDL2_TTF_LIBRARIES})
 target_link_libraries (${RUBIK_EXECUTABLE} ${SDL2_IMAGE_LIBRARIES})
 target_link_libraries (${RUBIK_EXECUTABLE} ${GLEW_LIBRARIES})
-target_link_libraries (${RUBIK_EXECUTABLE} ${MATH_LIBRARY}-shared)
+target_link_libraries (${RUBIK_EXECUTABLE} ${MATH_LIBRARIES})
 
 install (TARGETS ${RUBIK_EXECUTABLE} DESTINATION bin)
 install (DIRECTORY ${RUBIK_RESOURCES} DESTINATION ${RUBIK_DATADIR})
