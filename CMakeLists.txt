@@ -59,7 +59,7 @@ include_directories (${RUBIK_INCLUDE} ${MATH_INCLUDE_DIRS}
 
 set (RUBIK_NAME Rubik)
 set (RUBIK_DESCRIPTION "Rubik's Cube game")
-set (RUBIK_VERSION 0.1.8)
+set (RUBIK_VERSION 0.1.9)
 
 configure_file (Config.h.in Config.h @ONLY)
 
