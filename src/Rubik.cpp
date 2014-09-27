@@ -398,7 +398,7 @@ void Rubik::onMouseMotionEvent(SDL_MouseMotionEvent& event) {
     }
 }
 
-void Rubik::onMouseButtonEvent(SDL_MouseButtonEvent& event) {
+void Rubik::onMouseButtonEvent(SDL_MouseButtonEvent& /*event*/) {
 }
 
 void Rubik::onKeyboardEvent(SDL_KeyboardEvent& event) {
