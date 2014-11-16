@@ -41,12 +41,13 @@ endif ()
 
 find_package (OpenGL REQUIRED)
 
-include(FindPkgConfig)
-pkg_search_module(SDL2 REQUIRED sdl2)
-pkg_search_module(SDL2_TTF REQUIRED SDL2_ttf)
-pkg_search_module(SDL2_IMAGE REQUIRED SDL2_image)
-pkg_search_module(GLEW REQUIRED glew)
-pkg_search_module(MATH REQUIRED math)
+include (FindPkgConfig)
+pkg_search_module (SDL2 REQUIRED sdl2)
+pkg_search_module (SDL2_TTF REQUIRED SDL2_ttf)
+pkg_search_module (SDL2_IMAGE REQUIRED SDL2_image)
+pkg_search_module (GLEW REQUIRED glew)
+pkg_search_module (MATH REQUIRED math)
+pkg_search_module (FREETYPE REQUIRED freetype2)
 
 set (RUBIK_DATADIR ${CMAKE_INSTALL_PREFIX}/share/rubik
      CACHE PATH "Data directory")
@@ -55,7 +56,7 @@ set (RUBIK_INCLUDE src src/common src/game src/opengl src/utils)
 
 file (GLOB_RECURSE RUBIK_SOURCES src/*.cpp)
 include_directories (${RUBIK_INCLUDE} ${MATH_INCLUDE_DIRS}
-                     ${PROJECT_BINARY_DIR})
+                     ${FREETYPE_INCLUDE_DIRS} ${PROJECT_BINARY_DIR})
 
 set (RUBIK_NAME Rubik)
 set (RUBIK_DESCRIPTION "Rubik's Cube game")
@@ -72,6 +73,7 @@ target_link_libraries (${RUBIK_EXECUTABLE} ${SDL2_TTF_LIBRARIES})
 target_link_libraries (${RUBIK_EXECUTABLE} ${SDL2_IMAGE_LIBRARIES})
 target_link_libraries (${RUBIK_EXECUTABLE} ${GLEW_LIBRARIES})
 target_link_libraries (${RUBIK_EXECUTABLE} ${MATH_LIBRARIES})
+target_link_libraries (${RUBIK_EXECUTABLE} ${FREETYPE_LIBRARIES})
 
 install (TARGETS ${RUBIK_EXECUTABLE} DESTINATION bin)
 install (DIRECTORY ${RUBIK_RESOURCES} DESTINATION ${RUBIK_DATADIR})
