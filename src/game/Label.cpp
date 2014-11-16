@@ -22,8 +22,8 @@
 
 #include "Label.h"
 
-#include <SDL2/SDL_image.h>
 #include <Vec4.h>
+#include <tuple>
 
 namespace Rubik {
 
@@ -44,9 +44,15 @@ Label::Label() {
 }
 
 void Label::renderText() {
-    if (!this->text.empty() && this->font != nullptr) {
+    std::shared_ptr<void> textPixels;
+    SDL_Surface* textSurface = nullptr;
+
+    if (this->font == nullptr || this->text.empty()) {
+        textSurface = SDL_CreateRGBSurface(0, 2, 2, 32,
+            0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000);
+    } else {
         int textWidth, textHeight;
-        TTF_SizeUTF8(this->font.get(), text.c_str(), &textWidth, &textHeight);
+        std::tie(textPixels, textWidth, textHeight) = this->font->render(this->text);
 
         Math::Mat4 world(this->projection);
         world.invert();
@@ -63,17 +69,14 @@ void Label::renderText() {
         this->heightScaleFactor = size.get(Math::Vec4::Y);
         this->scaleY(this->heightScaleFactor);
 
-        SDL_Color color = { 0, 0, 0, 0 };
-        SDL_Surface* textSurface = TTF_RenderUTF8_Blended(this->font.get(), text.c_str(), color);
-        std::dynamic_pointer_cast<Opengl::ImageTexture>(this->getTexture())->load(textSurface);
-        SDL_FreeSurface(textSurface);
-    } else {
-        Uint32 data[] = { 0x000000FF, 0x00000000, 0x00000000, 0x00000000 };
-        SDL_Surface* dummyImage = SDL_CreateRGBSurfaceFrom(&data, 2, 2, 32, 4,
-                0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000);
-        std::dynamic_pointer_cast<Opengl::ImageTexture>(this->getTexture())->load(dummyImage);
-        SDL_FreeSurface(dummyImage);
+        textSurface = SDL_CreateRGBSurfaceFrom(textPixels.get(), textWidth, textHeight,
+            32, 4, 0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000);
     }
+
+    auto texture = std::dynamic_pointer_cast<Opengl::ImageTexture>(this->getTexture());
+    texture->load(textSurface);
+
+    SDL_FreeSurface(textSurface);
 }
 
 }  // namespace Game

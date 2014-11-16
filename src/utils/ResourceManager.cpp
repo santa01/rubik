@@ -89,13 +89,13 @@ std::shared_ptr<MeshData>& ResourceManager::makeMesh(const std::string& name) {
     return this->meshDataCache[name];
 }
 
-std::shared_ptr<TTF_Font>& ResourceManager::makeFont(const std::string& name, unsigned int size) {
+std::shared_ptr<Game::Font>& ResourceManager::makeFont(const std::string& name, int size) {
     if (this->fontCache[name].find(size) == this->fontCache[name].end()) {
         Logger::getInstance().log(Logger::LOG_INFO, "Loading font `%s' (%dpt)", name.c_str(), size);
 
-        std::shared_ptr<TTF_Font> font(TTF_OpenFont(name.c_str(), size), TTF_CloseFont);
-        if (font == nullptr) {
-            Logger::getInstance().log(Logger::LOG_ERROR, "TTF_OpenFont() failed: %s", TTF_GetError());
+        auto font = std::make_shared<Game::Font>();
+        if (!font->load(name, size)) {
+            Logger::getInstance().log(Logger::LOG_ERROR, "Failed to load `%s' (%dpt)", name.c_str(), size);
             return this->fontCache[name][-1];
         }
 

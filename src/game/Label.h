@@ -25,8 +25,8 @@
 
 #include "Mesh.h"
 #include "ImageTexture.h"
+#include "Font.h"
 
-#include <SDL2/SDL_ttf.h>
 #include <Mat4.h>
 #include <string>
 #include <memory>
@@ -55,12 +55,12 @@ public:
         return this->text;
     }
 
-    void setFont(const std::shared_ptr<TTF_Font>& font) {
+    void setFont(const std::shared_ptr<Font>& font) {
         this->font = font;
         this->renderText();
     }
 
-    const std::shared_ptr<TTF_Font>& getFont() const {
+    const std::shared_ptr<Font>& getFont() const {
         return this->font;
     }
 
@@ -80,7 +80,7 @@ public:
 private:
     void renderText();
 
-    std::shared_ptr<TTF_Font> font;
+    std::shared_ptr<Font> font;
     std::string text;
 
     Math::Mat4 projection;

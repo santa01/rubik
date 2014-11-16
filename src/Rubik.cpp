@@ -236,7 +236,6 @@ void Rubik::shutdown() {
     }
 
     IMG_Quit();
-    TTF_Quit();
     SDL_Quit();
 
     Utils::Logger::getInstance().log(Utils::Logger::LOG_INFO, "Shutting down...");
@@ -282,11 +281,6 @@ bool Rubik::initSDL() {
         return false;
     }
 
-    if (TTF_Init()) {
-        Utils::Logger::getInstance().log(Utils::Logger::LOG_ERROR, "TTF_Init() failed: %s", TTF_GetError());
-        return false;
-    }
-
     if (!IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG)) {
         Utils::Logger::getInstance().log(Utils::Logger::LOG_ERROR, "IMG_Init() failed: %s", IMG_GetError());
         return false;
@@ -296,10 +290,6 @@ bool Rubik::initSDL() {
     SDL_GetVersion(&sdlVersion);
     Utils::Logger::getInstance().log(Utils::Logger::LOG_INFO, "SDL version: %d.%d.%d",
             sdlVersion.major, sdlVersion.minor, sdlVersion.patch);
-
-    const SDL_version *sdlTtfVersion = TTF_Linked_Version();
-    Utils::Logger::getInstance().log(Utils::Logger::LOG_INFO, "SDL_ttf version: %d.%d.%d",
-            sdlTtfVersion->major, sdlTtfVersion->minor, sdlTtfVersion->patch);
 
     const SDL_version *sdlImageVersion = IMG_Linked_Version();
     Utils::Logger::getInstance().log(Utils::Logger::LOG_INFO, "SDL_image version: %d.%d.%d",

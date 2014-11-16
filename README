@@ -11,7 +11,7 @@ Controls:
     <ESQ> - quit game.
 
 Game renderer uses OpenGL 3.3 (as defined in shaders), game requires SDL2,
-SDL2_image, SDL2_ttf and GLEW libraries to be installed. Rubik also requires
+SDL2_image, FreeType2 and GLEW libraries to be installed. Rubik also requires
 external math library: https://github.com/santa01/math
 
 By default rubik will try to load resources from /usr/local/share/rubik.
