@@ -531,7 +531,7 @@ void Rubik::updateUI() {
             break;
 
         default:
-            this->promptLabel->clear();
+            this->promptLabel->setText("");
     }
 }
 

@@ -56,8 +56,10 @@ public:
     }
 
     void setFont(const std::shared_ptr<Font>& font) {
-        this->font = font;
-        this->renderText();
+        if (this->font != font) {
+            this->font = font;
+            this->renderText();
+        }
     }
 
     const std::shared_ptr<Font>& getFont() const {
@@ -65,16 +67,14 @@ public:
     }
 
     void setProjection(const Math::Mat4& projection) {
-        this->projection = projection;
-        this->renderText();
+        if (this->projection != projection) {
+            this->projection = projection;
+            this->renderText();
+        }
     }
 
     const Math::Mat4& getProjection() const {
         return this->projection;
-    }
-
-    void clear() {
-        this->setText("");
     }
 
 private:
