@@ -31,6 +31,7 @@
 #include <string>
 #include <memory>
 #include <tuple>
+#include <cstdint>
 
 namespace Rubik {
 
@@ -41,11 +42,11 @@ void FT_Delete_Face(FT_Face* face);
 void FT_Render_Callback(int y, int count, const FT_Span* spans, void* param);
 
 typedef struct {
-    void* pixels;
+    uint32_t* pixels;
     int width;
     int height;
     int offset;
-} FT_RenderContext;
+} FontContext;
 
 class Font: public Common::NonCopyable {
 public:
@@ -57,7 +58,7 @@ public:
     }
 
     bool load(const std::string& name, int size);
-    std::tuple<std::shared_ptr<void>, int, int> render(const std::string& text);
+    std::shared_ptr<FontContext> render(const std::string& text);
 
 private:
     static std::shared_ptr<FT_Library> library;

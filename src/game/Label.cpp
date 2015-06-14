@@ -44,21 +44,19 @@ Label::Label() {
 }
 
 void Label::renderText() {
-    std::shared_ptr<void> textPixels;
     SDL_Surface* textSurface = nullptr;
 
     if (this->font == nullptr || this->text.empty()) {
         textSurface = SDL_CreateRGBSurface(0, 2, 2, 32,
             0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000);
     } else {
-        int textWidth, textHeight;
-        std::tie(textPixels, textWidth, textHeight) = this->font->render(this->text);
+        auto context = this->font->render(this->text);
 
         Math::Mat4 world(this->projection);
         world.invert();
 
         Math::Vec4 origin((world * this->ndc) * Math::Vec4(0.0f, 0.0f, 0.0f, 1.0f));
-        Math::Vec4 size(textWidth, textHeight, 0.0f, 1.0f);
+        Math::Vec4 size(context->width, context->height, 0.0f, 1.0f);
         size = (world * this->ndc) * size - origin;
 
         this->scaleX(1.0f / this->widthScaleFactor);
@@ -69,7 +67,7 @@ void Label::renderText() {
         this->heightScaleFactor = size.get(Math::Vec4::Y);
         this->scaleY(this->heightScaleFactor);
 
-        textSurface = SDL_CreateRGBSurfaceFrom(textPixels.get(), textWidth, textHeight,
+        textSurface = SDL_CreateRGBSurfaceFrom(context->pixels, context->width, context->height,
             32, 4, 0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000);
     }
 
