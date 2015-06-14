@@ -147,15 +147,18 @@ void ResourceManager::purgeCaches() {
 void ResourceManager::insertEffect(const std::string& name, const std::string& source) {
     std::shared_ptr<Opengl::RenderEffect> effect(new Opengl::RenderEffect());
 
-    std::stringstream modifiedSource;
-    modifiedSource << "#define TYPE_VERTEX\n";
-    modifiedSource << source;
-    effect->attachShader(modifiedSource.str(), Opengl::RenderEffect::ShaderType::TYPE_VERTEX);
+    std::stringstream version;
+    version << "#version " << effect->getVersion() << "\n";
 
-    modifiedSource.str("");
-    modifiedSource << "#define TYPE_FRAGMENT\n";
-    modifiedSource << source;
-    effect->attachShader(modifiedSource.str(), Opengl::RenderEffect::ShaderType::TYPE_FRAGMENT);
+    std::string vertexShader(source);
+    vertexShader.replace(vertexShader.find(TOKEN_VERSION), sizeof(TOKEN_VERSION), version.str());
+    vertexShader.replace(vertexShader.find(TOKEN_TYPE), sizeof(TOKEN_TYPE), "#define TYPE_VERTEX\n");
+    effect->attachShader(vertexShader, Opengl::RenderEffect::ShaderType::TYPE_VERTEX);
+
+    std::string fragmentShader(source);
+    fragmentShader.replace(fragmentShader.find(TOKEN_VERSION), sizeof(TOKEN_VERSION), version.str());
+    fragmentShader.replace(fragmentShader.find(TOKEN_TYPE), sizeof(TOKEN_TYPE), "#define TYPE_FRAGMENT\n");
+    effect->attachShader(fragmentShader, Opengl::RenderEffect::ShaderType::TYPE_FRAGMENT);
 
     effect->enable();  // Compile
     this->effectCache.insert(std::make_pair(name, effect));

@@ -1,4 +1,5 @@
-#version 330
+{SHADER_VERSION}
+{SHADER_TYPE}
 
 #ifdef TYPE_VERTEX
     uniform mat4 mvp;

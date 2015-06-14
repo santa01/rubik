@@ -36,6 +36,9 @@
 #include <vector>
 #include <string>
 
+#define TOKEN_VERSION "{SHADER_VERSION}"
+#define TOKEN_TYPE    "{SHADER_TYPE}"
+
 namespace Rubik {
 
 namespace Opengl {
@@ -49,6 +52,7 @@ public:
 
     RenderEffect() {
         this->program = 0;
+        this->version = 330;
     }
 
     ~RenderEffect() {
@@ -105,6 +109,10 @@ public:
         }
     }
 
+    GLuint getVersion() const {
+        return this->version;
+    }
+
     void enable() {
         if (this->program == 0) {
             this->program = Opengl::ShaderLoader::createProgram(this->shaderList);
@@ -128,6 +136,7 @@ private:
     std::vector<GLuint> shaderList;
 
     GLuint program;
+    GLuint version;
 };
 
 }  // namespace Opengl
