@@ -20,39 +20,38 @@
  * SOFTWARE.
  */
 
-#include "ArgumentParser.h"
-
-#include <getopt.h>
-#include <libgen.h>  // basename()
+#include <ArgumentParser.h>
+#include <iostream>
 #include <iomanip>
 #include <sstream>
-#include <vector>
 #include <algorithm>
+#include <cctype>
 
 namespace Rubik {
 
-namespace Utils {
-
-bool ArgumentParser::addArgument(const std::string& longName, const std::string& description, ArgumentType type) {
-    auto status = std::find_if_not(longName.begin(), longName.end(), [](char c) -> bool {
-        return (std::isalnum(c) || c == '-');
-    });
-
-    if (status != longName.end()) {
-        return false;
-    }
-
-    if (this->arguments.find(longName) != this->arguments.end()) {
-        return false;
-    }
-
-    this->pushArgument(0, longName, description, type);
-    return true;
+ArgumentParser::ArgumentParser() {
+    this->addArgument("help", "display this help", ValueType::TYPE_BOOL);
+    this->addArgument("version", "output version information", ValueType::TYPE_BOOL);
 }
 
-bool ArgumentParser::addArgument(char name, const std::string& longName,
-        const std::string& description, ArgumentType type) {
-    if (name < '0' || (name > '9' && name < 'A') || (name > 'Z' && name < 'a') || name > 'z') {
+void ArgumentParser::setDescription(const std::string& description) {
+    this->description = description;
+}
+
+const std::string& ArgumentParser::getDescription() const {
+    return this->description;
+}
+
+void ArgumentParser::setVersion(const std::string& version) {
+    this->version = version;
+}
+
+const std::string& ArgumentParser::getVersion() const {
+    return this->version;
+}
+
+bool ArgumentParser::addArgument(char name, const std::string& longName, const std::string& description, ValueType type) {
+    if (!std::isalnum(name)) {
         return false;
     }
 
@@ -60,11 +59,20 @@ bool ArgumentParser::addArgument(char name, const std::string& longName,
         return false;
     }
 
-    auto status = std::find_if_not(longName.begin(), longName.end(), [](char c) -> bool {
-        return (std::isalnum(c) || c == '-');
-    });
+    if (!this->addArgument(longName, description, type)) {
+        return false;
+    }
 
-    if (status != longName.end()) {
+    auto argument = this->arguments[longName];
+    this->aliases[name] = longName;
+
+    argument->shortOption = name;
+
+    return true;
+}
+
+bool ArgumentParser::addArgument(const std::string& longName, const std::string& description, ValueType type) {
+    if (!ArgumentParser::isAlphaNumeric(longName)) {
         return false;
     }
 
@@ -72,95 +80,133 @@ bool ArgumentParser::addArgument(char name, const std::string& longName,
         return false;
     }
 
-    this->pushArgument(name, longName, description, type);
-    this->aliases[name] = longName;
+    auto argument = std::shared_ptr<Argument>(new Argument());
+    this->arguments[longName] = argument;
+
+    argument->type = type;
+    argument->description = description;
+
     return true;
 }
 
 bool ArgumentParser::parse(int argc, char** argv) {
-    std::stringstream shortOptions;
-    std::vector<struct option> longOptions;
-
-    struct option longOption;
-    for (auto& argument: this->arguments) {
-        longOption.name = argument.first.c_str();
-        longOption.flag = nullptr;
-        longOption.val = 0;
-        longOption.has_arg = (argument.second->type == ArgumentType::TYPE_BOOL) ? no_argument : required_argument;
-
-        longOptions.push_back(longOption);  // vector::emplace_back() kills gcc, how unfortunate
-
-        if (argument.second->shortOption) {
-            shortOptions << argument.second->shortOption;
-            if (argument.second->type != ArgumentType::TYPE_BOOL) {
-                shortOptions << ":";
-            }
-        }
-    }
-
-    int i = 0;
-    auto optionsArray = std::unique_ptr<struct option[]>(new struct option[longOptions.size() + 1]);
-    for (auto& option: longOptions) {
-        optionsArray[i++] = option;
-    }
-
-    optionsArray[i].name = nullptr;
-    optionsArray[i].flag = nullptr;
-    optionsArray[i].val = 0;
-    optionsArray[i].has_arg = no_argument;
-
-    int optionIndex = 0;
+    int optionIndex = 1;
     bool parseFailed = false;
-    std::shared_ptr<Argument> argument;
 
-    int option;
-    while ((option = getopt_long(argc, argv, shortOptions.str().c_str(), optionsArray.get(), &optionIndex)) != -1) {
-        switch (option) {
-            case 0:
-                argument = this->arguments.at(optionsArray[optionIndex].name);
-                if (optionsArray[optionIndex].has_arg != no_argument) {
-                    if ((parseFailed = !this->validate(argument, optarg)) == false) {
-                        argument->value = optarg;
-                        argument->set = true;
-                    }
-                } else {
-                    argument->set = true;
-                }
-                break;
+    while (optionIndex < argc) {
+        char name;
+        std::string longName;
 
-            default:
-                auto alias = this->aliases.find(option);
-                if (alias != this->aliases.end()) {
-                    argument = this->arguments.at(alias->second);
-                    if (argument->type != ArgumentType::TYPE_BOOL) {
-                        if ((parseFailed = !this->validate(argument, optarg)) == false) {
-                            argument->value = optarg;
-                            argument->set = true;
-                        }
-                    } else {
-                        argument->set = true;
-                    }
-                } else {
-                    parseFailed = true;
-                }
-        }
-
+        std::string option(argv[optionIndex++]);
+        parseFailed = !ArgumentParser::prepare(option, name, longName);
         if (parseFailed) {
             break;
         }
+
+        if (name != '\0') {
+            longName = this->aliases[name];
+        }
+
+        std::shared_ptr<Argument> argument = this->arguments[longName];
+        if (argument->type == ValueType::TYPE_BOOL) {
+            argument->isSet = true;
+            continue;
+        }
+
+        std::string argumentValue(argv[optionIndex++]);
+        parseFailed = !ArgumentParser::validate(argument->type, argumentValue);
+        if (parseFailed) {
+            break;
+        }
+
+        argument->value = argumentValue;
+        argument->isSet = true;
     }
 
-    if (!parseFailed && optind < argc) {
+    if (optionIndex < argc) {
         parseFailed = true;
     }
 
     if (this->isSet("version")) {
         this->printVersion();
     } else if (this->isSet("help") || parseFailed) {
-        this->printHelp(basename(argv[0]));
+        this->printHelp(argv[0]);
     }
 
     return !parseFailed;
+}
+
+bool ArgumentParser::isSet(char name) const {
+    return this->isSet(this->aliases.at(name));
+}
+
+bool ArgumentParser::isSet(const std::string& longName) const {
+    auto argument = this->arguments.find(longName);
+    return (argument != this->arguments.end() && argument->second->isSet);
+}
+
+std::string ArgumentParser::getOption(char name) const {
+    return this->getOption(this->aliases.at(name));
+}
+
+std::string ArgumentParser::getOption(const std::string& longName) const {
+    if (!this->isSet(longName)) {
+        return "";
+    }
+
+    auto argument = this->arguments.at(longName);
+    return argument->value;
+}
+
+bool ArgumentParser::isAlphaNumeric(const std::string& value) {
+    auto status = std::find_if_not(value.begin(), value.end(), [](char c) { return std::isalnum(c); });
+    return (status == value.end());
+}
+
+bool ArgumentParser::prepare(const std::string& option, char& name, std::string& longName) {
+    size_t optionLength = option.length();
+    bool isOptionValid = false;
+
+    if (optionLength == 2 && option[0] == '-') {
+        char optionName = option[1];
+        if (std::isalnum(optionName)) {
+            name = optionName;
+            longName = "";
+            isOptionValid = true;
+        }
+    } else if (optionLength > 2 && option.substr(0, 2) == "--") {
+        std::string optionName = option.substr(2);
+        if (ArgumentParser::isAlphaNumeric(optionName)) {
+            name = '\0';
+            longName = optionName;
+            isOptionValid = true;
+        }
+    }
+
+    return isOptionValid;
+}
+
+bool ArgumentParser::validate(ValueType type, const std::string& value) {
+    std::stringstream testValue(value);
+
+    switch (type) {
+        case ValueType::TYPE_FLOAT: {
+            float floatValue;
+            testValue >> std::noskipws >> floatValue;
+            break;
+        }
+
+        case ValueType::TYPE_INT: {
+            int intValue;
+            testValue >> std::noskipws >> intValue;
+            break;
+        }
+
+        default:
+            return true;
+    }
+
+    return (testValue.eof() && !testValue.fail());
 }
 
 void ArgumentParser::printHelp(char* application) const {
@@ -172,7 +218,7 @@ void ArgumentParser::printHelp(char* application) const {
     std::cout << std::endl << "Available options:" << std::endl;
     for (auto& argument: this->arguments) {
         std::stringstream option;
-        if (argument.second->shortOption) {
+        if (argument.second->shortOption != '\0') {
             option << std::setw(5) << "-" << argument.second->shortOption << ", --";
         } else {
             option << std::setw(10) << "--";
@@ -182,15 +228,15 @@ void ArgumentParser::printHelp(char* application) const {
         longName << argument.first;
 
         switch (argument.second->type) {
-            case ArgumentType::TYPE_INT:
+            case ValueType::TYPE_INT:
                 longName << "=[int]";
                 break;
 
-            case ArgumentType::TYPE_FLOAT:
+            case ValueType::TYPE_FLOAT:
                 longName << "=[float]";
                 break;
 
-            case ArgumentType::TYPE_STRING:
+            case ValueType::TYPE_STRING:
                 longName << "=[string]";
                 break;
 
@@ -204,28 +250,10 @@ void ArgumentParser::printHelp(char* application) const {
     }
 }
 
-bool ArgumentParser::validate(const std::shared_ptr<Argument>& argument, const char* value) const {
-    std::stringstream testValue(value);
-
-    int intValue;
-    float floatValue;
-
-    switch (argument->type) {
-        case ArgumentType::TYPE_FLOAT:
-            testValue >> std::noskipws >> floatValue;
-            break;
-
-        case ArgumentType::TYPE_INT:
-            testValue >> std::noskipws >> intValue;
-            break;
-
-        default:
-            return true;
+void ArgumentParser::printVersion() const {
+    if (!this->version.empty()) {
+        std::cout << this->version << std::endl;
     }
-
-    return (testValue.eof() && !testValue.fail());
 }
-
-}  // namespace Utils
 
 }  // namespace Rubik

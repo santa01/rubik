@@ -25,94 +25,51 @@
 
 #include <string>
 #include <memory>
-#include <iostream>
 #include <unordered_map>
 
 namespace Rubik {
 
-namespace Utils {
+enum ValueType {
+    TYPE_BOOL,
+    TYPE_INT,
+    TYPE_FLOAT,
+    TYPE_STRING
+};
 
 class ArgumentParser {
 public:
-    enum ArgumentType {
-        TYPE_BOOL,
-        TYPE_INT,
-        TYPE_FLOAT,
-        TYPE_STRING
-    };
+    ArgumentParser();
 
-    ArgumentParser() {
-        this->addArgument("help", "display this help", ArgumentType::TYPE_BOOL);
-        this->addArgument("version", "output version information", ArgumentType::TYPE_BOOL);
-    }
+    void setDescription(const std::string& description);
+    const std::string& getDescription() const;
 
-    void setDescription(const std::string& description) {
-        this->description = description;
-    }
+    void setVersion(const std::string& version);
+    const std::string& getVersion() const;
 
-    const std::string& getDescription() const {
-        return this->description;
-    }
-
-    void setVersion(const std::string& version) {
-        this->version = version;
-    }
-
-    const std::string& getVersion() const {
-        return this->version;
-    }
-
-    bool addArgument(const std::string& longName,const std::string& description, ArgumentType type);
-    bool addArgument(char name, const std::string& longName, const std::string& description, ArgumentType type);
-
+    bool addArgument(char name, const std::string& longName, const std::string& description, ValueType type);
+    bool addArgument(const std::string& longName, const std::string& description, ValueType type);
     bool parse(int argc, char** argv);
 
-    bool isSet(char name) const {
-        return this->isSet(this->aliases.at(name));
-    }
-
-    bool isSet(const std::string& longName) const {
-        auto argument = this->arguments.find(longName);
-        return (argument != this->arguments.end() && argument->second->set);
-    }
-
-    std::string getOption(char name) const {
-        return this->getOption(this->aliases.at(name));
-    }
-
-    std::string getOption(const std::string& longName) const {
-        if (!this->isSet(longName)) {
-            return "";
-        }
-
-        auto argument = this->arguments.at(longName);
-        return argument->value;
-    }
+    bool isSet(char name) const;
+    bool isSet(const std::string& longName) const;
+    std::string getOption(char name) const;
+    std::string getOption(const std::string& longName) const;
 
 private:
-    typedef struct {
-        ArgumentType type;
-        std::string value;
-        std::string description;
-        char shortOption;
-        bool set;
-    } Argument;
+    static bool isAlphaNumeric(const std::string& value);
+    static bool prepare(const std::string& option, char& name, std::string& longName);
+    static bool validate(ValueType type, const std::string& value);
 
     void printHelp(char* application) const;
-    void printVersion() const {
-        std::cout << this->version << std::endl;
-    }
+    void printVersion() const;
 
-    bool validate(const std::shared_ptr<Argument>& argument, const char* value) const;
-    void pushArgument(char name, const std::string& longName, const std::string& description, ArgumentType type) {
-        auto argument = std::shared_ptr<Argument>(new Argument());
-        argument->type = type;
-        argument->description = description;
-        argument->shortOption = name;
-        argument->set = false;
-
-        this->arguments[longName] = argument;
-    }
+    typedef struct {
+        ValueType type;
+        std::string value;
+        std::string description;
+        char shortOption = '\0';
+        bool isSet = false;
+    } Argument;
 
     std::unordered_map<std::string, std::shared_ptr<Argument>> arguments;
     std::unordered_map<char, std::string> aliases;
@@ -120,8 +77,6 @@ private:
     std::string description;
     std::string version;
 };
-
-}  // namespace Utils
 
 }  // namespace Rubik
 
