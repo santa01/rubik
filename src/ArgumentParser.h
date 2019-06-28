@@ -29,12 +29,7 @@
 
 namespace Rubik {
 
-enum ValueType {
-    TYPE_BOOL,
-    TYPE_INT,
-    TYPE_FLOAT,
-    TYPE_STRING
-};
+enum class ValueType { BOOL, INT, FLOAT, STRING };
 
 class ArgumentParser {
 public:
@@ -56,9 +51,10 @@ public:
     std::string getOption(const std::string& longName) const;
 
 private:
-    static bool isAlphaNumeric(const std::string& value);
-    static bool prepare(const std::string& option, char& name, std::string& longName);
-    static bool validate(ValueType type, const std::string& value);
+    enum class ArgumentType { INVALID, SHORT_NAME, LONG_NAME };
+
+    ArgumentType prepareArgument(const std::string& option, char& name, std::string& longName);
+    bool validateArgument(ValueType type, const std::string& value);
 
     void printHelp(char* application) const;
     void printVersion() const;
