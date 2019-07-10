@@ -20,9 +20,45 @@
  * SOFTWARE.
  */
 
-#include "Rubik.h"
+#include <Rubik.h>
+#include <ArgumentParser.h>
+#include <Config.h>
+#include <EngineConfig.h>
+#include <cstdlib>
 
 int main(int argc, char** argv) {
-    Rubik::Rubik rubik(argc, argv);
+    Rubik::ArgumentParser arguments;
+    arguments.setDescription(RUBIK_DESCRIPTION);
+    arguments.setVersion(RUBIK_VERSION);
+
+    arguments.addArgument('f', "fov", "camera field of view", Rubik::ValueType::FLOAT);
+    arguments.addArgument('h', "height", "viewport height", Rubik::ValueType::INT);
+    arguments.addArgument('w', "width", "viewport width", Rubik::ValueType::INT);
+    arguments.addArgument('S', "samples", "MSAA samples", Rubik::ValueType::INT);
+    arguments.addArgument('F', "fps", "maximum fps limit", Rubik::ValueType::FLOAT);
+    arguments.addArgument('v', "vsync", "vertical sync", Rubik::ValueType::BOOL);
+    arguments.addArgument('d', "debug", "debug logging", Rubik::ValueType::BOOL);
+    arguments.addArgument('s', "shuffles", "initial cube shuffles", Rubik::ValueType::INT);
+
+    if (!arguments.parse(argc, argv)) {
+        return EXIT_FAILURE;
+    }
+
+    if (arguments.isSet("help") || arguments.isSet("version")) {
+        return EXIT_SUCCESS;
+    }
+
+    Graphene::EngineConfig config;
+    config.setFov(arguments.isSet("fov") ? stof(arguments.getOption("fov")) : 75.0f);
+    config.setHeight(arguments.isSet("height") ? stoi(arguments.getOption("height")) : 480);
+    config.setWidth(arguments.isSet("width") ? stoi(arguments.getOption("width")) : 640);
+    config.setSamples(arguments.isSet("samples") ? stoi(arguments.getOption("samples")) : 0);
+    config.setMaxFps(arguments.isSet("fps") ? stof(arguments.getOption("fps")) : 30.0f);
+    config.setVsync(arguments.isSet("vsync"));
+    config.setDebug(arguments.isSet("debug"));
+
+    Rubik::Rubik rubik(config);
+    rubik.setShuffles(arguments.isSet("shuffles") ? stoi(arguments.getOption("shuffles")) : 20);
+
     return rubik.exec();
 }
