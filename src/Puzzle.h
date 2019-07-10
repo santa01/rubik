@@ -26,48 +26,39 @@
 #include <NonCopyable.h>
 #include <SceneNode.h>
 #include <utility>
-#include <ctime>
 
 namespace Rubik {
 
-enum class AnimationState {
-    IDLE,
-    LEFT_ROTATION,
-    RIGHT_ROTATION,
-    UP_ROTATION,
-    DOWN_ROTATION
-};
+enum class AnimationState { IDLE, LEFT_ROTATION, RIGHT_ROTATION, UP_ROTATION, DOWN_ROTATION };
 
 class Puzzle: public Graphene::NonCopyable {
 public:
-    Puzzle();
-
-    float getRotationSpeed() const;
-    void setRotationSpeed(float rotationSpeed);
-
-    const Math::Vec3& getSelectedCube() const;
-    void selectCube(const Math::Vec3& cubePosition);
+    const std::pair<int, int>& getSelectedCube() const;
+    void selectCube(const std::pair<int, int>& selectedCube);
+    static bool isSelectionValid(const std::pair<int, int>& selectedCube);
 
     AnimationState getAnimationState() const;
     void setAnimationState(AnimationState state);
 
-    void attachCube(int i, int j, int k, std::shared_ptr<Graphene::SceneNode> cube);
+    float getRotationSpeed() const;
+    void setRotationSpeed(float rotationSpeed);
+
+    void attachCube(std::shared_ptr<Graphene::SceneNode> cube, int cubeId);
+    void shuffle(int times);
     bool isCompleted();
 
-    void shuffle(int times);
     void animate(float frameTime);
 
 private:
-    void rotatePuzzleCubes(AnimationState state, const Math::Vec3 cubePosition);
-    void rotatePuzzleEntities(AnimationState state, float angle, const Math::Vec3 cubePosition);
+    void rotateFacet(const std::pair<int, int>& selectedCube, AnimationState state);
+    void rotateEntities(const std::pair<int, int>& selectedCube, float angle, AnimationState state);
 
     bool isOrdered() const;
 
-    static const Math::Vec3 DUMMY_SELECTION;
+    typedef std::pair<std::shared_ptr<Graphene::SceneNode>, int> Cube;
+    Cube cubes[3][3][3];
 
-    std::pair<std::shared_ptr<Graphene::SceneNode>, int> cubes[3][3][3];
-    Math::Vec3 selectedCube = Math::Vec3::ZERO;
-
+    std::pair<int, int> selectedCube = std::make_pair(-1, -1);
     AnimationState state = AnimationState::IDLE;
     float rotationSpeed = 300.0f;
 };
