@@ -67,9 +67,9 @@ void Puzzle::attachCube(std::shared_ptr<Graphene::SceneNode> cube, int cubeId) {
 
 void Puzzle::shuffle(int times) {
     for (int i = 0; i < times; i++) {
-        this->selectCube(std::make_pair(std::rand() % 3, std::rand() % 3));
-        this->setAnimationState(static_cast<AnimationState>(std::rand() % 4 + 1));
-        this->animate(90.0f / this->getRotationSpeed());
+        this->selectedCube = std::make_pair(std::rand() % 3, std::rand() % 3);
+        this->state = static_cast<AnimationState>(std::rand() % 4 + 1);
+        this->animate(90.0f / this->rotationSpeed);
     }
 }
 
@@ -96,17 +96,17 @@ bool Puzzle::isCompleted() {
 }
 
 void Puzzle::animate(float frameTime) {
-    static std::pair<int, int> currentSelectedCube = this->getSelectedCube();
+    static std::pair<int, int> currentSelectedCube = this->selectedCube;
     static AnimationState currentState = this->state;
 
     if (currentState == AnimationState::IDLE && this->state != AnimationState::IDLE) {
-        currentSelectedCube = this->getSelectedCube();
+        currentSelectedCube = this->selectedCube;
         currentState = this->state;
     }
 
     static float rotationAngle = 0.0f;
     float rotationDirection = 1.0f;
-    float stepAngle = this->getRotationSpeed() * frameTime;
+    float stepAngle = this->rotationSpeed * frameTime;
 
     switch (currentState) {
         case AnimationState::RIGHT_ROTATION:
