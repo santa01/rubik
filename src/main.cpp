@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
         return EXIT_SUCCESS;
     }
 
-    Graphene::EngineConfig config;
+    auto& config = Graphene::GetEngineConfig();
     config.setFov(arguments.isSet("fov") ? stof(arguments.getOption("fov")) : 75.0f);
     config.setHeight(arguments.isSet("height") ? stoi(arguments.getOption("height")) : 480);
     config.setWidth(arguments.isSet("width") ? stoi(arguments.getOption("width")) : 640);
@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
     config.setVsync(arguments.isSet("vsync"));
     config.setDebug(arguments.isSet("debug"));
 
-    Rubik::Rubik rubik(config);
+    Rubik::Rubik rubik;
     rubik.setShuffles(arguments.isSet("shuffles") ? stoi(arguments.getOption("shuffles")) : 20);
 
     return rubik.exec();
