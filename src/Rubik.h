@@ -23,91 +23,59 @@
 #ifndef RUBIK_H
 #define RUBIK_H
 
-#include "Camera.h"
-#include "Cube.h"
-#include "Label.h"
-#include "NonCopyable.h"
-#include "FrameBuffer.h"
-#include "ArgumentParser.h"
-
-#include <SDL2/SDL_video.h>
-#include <SDL2/SDL_scancode.h>
+#include <Engine.h>
+#include <Puzzle.h>
+#include <Label.h>
 #include <Vec3.h>
 #include <memory>
-#include <vector>
+
+#if defined(_WIN32)
+#define KEY_ESC   1
+#define KEY_Y     21
+#define KEY_P     25
+#define KEY_S     31
+#define KEY_N     49
+#elif defined(__linux__)
+#define KEY_ESC   9
+#define KEY_Y     29
+#define KEY_P     33
+#define KEY_S     39
+#define KEY_N     57
+#endif
 
 namespace Rubik {
 
-class Rubik: public Common::NonCopyable {
+class Rubik: public Graphene::Engine {
 public:
-    Rubik(int argc, char** argv);
-    int exec();
+    Rubik();
+
+    int getShuffles() const;
+    void setShuffles(int shuffles);
 
 private:
-    enum {
-        ERROR_OK,
-        ERROR_SETUP
-    };
+    void onMouseMotion(int x, int y);
+    void onKeyboardButton(int button, bool state);
+    void onSetup();
+    void onIdle();
 
-    enum GameState {
-        STATE_RUNNING,
-        STATE_PAUSED,
-        STATE_QUIT,
-        STATE_FINISHED
-    };
-
-    bool initialize();
-    void shutdown();
-
-    bool parseCLI();
-    bool initSDL();
-    bool initOpenGL();
-
-    void onMouseMotionEvent(SDL_MouseMotionEvent& event);
-    void onMouseButtonEvent(SDL_MouseButtonEvent& event);
-    void onKeyboardEvent(SDL_KeyboardEvent& event);
-
-    void rotateCube(const Math::Vec3& direction, const Math::Vec3& position);
-
+    void setupScene();
+    void setupUI();
     void updateScene();
     void updateUI();
-    void render();
 
-    SDL_Window* window;
-    SDL_GLContext context;
+    void rotateCube(const std::pair<int, int>& selectedCube, const Math::Vec3& direction);
 
-    std::unique_ptr<Game::Cube> cube;
-    std::unique_ptr<Game::Label> timeLabel;
-    std::unique_ptr<Game::Label> movesLabel;
-    std::unique_ptr<Game::Label> promptLabel;
+    std::shared_ptr<Puzzle> puzzle;
+    std::shared_ptr<Graphene::Label> timeLabel;
+    std::shared_ptr<Graphene::Label> movesLabel;
+    std::shared_ptr<Graphene::Label> promptLabel;
 
-    std::unique_ptr<Opengl::FrameBuffer> frameBuffer;
-    std::shared_ptr<Opengl::RenderEffect> defaultEffect;
-    std::shared_ptr<Opengl::RenderEffect> pickupEffect;
+    int shuffles = 20;
+    int moves = 0;
+    float gameTime = 0.0f;
 
-    Utils::ArgumentParser arguments;
-    Game::Camera camera;
-
-    int argc;
-    char** argv;
-
-    int width;
-    int height;
-    float fov;
-    float maxFps;
-    int shuffles;
-    int samples;
-    bool vsync;
-
-    int movesCounter;
-    float frameTime;
-    float gameTime;
-
-    bool running;
-    GameState gameState;
-
-    Uint8 mouseButtonStates[SDL_BUTTON_X2 + 1];
-    Uint8 keyboardButtonStates[SDL_NUM_SCANCODES];
+    enum class GameState { RUNNING, PAUSED, QUIT, FINISHED };
+    GameState state = GameState::RUNNING;
 };
 
 }  // namespace Rubik
