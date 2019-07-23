@@ -20,58 +20,55 @@
 # SOFTWARE.
 #
 
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 3.12)
 project (RUBIK)
 
-if (CMAKE_COMPILER_IS_GNUCC)
-    execute_process (COMMAND ${CMAKE_CXX_COMPILER} -dumpversion
-                     OUTPUT_VARIABLE GCC_VERSION)
-    string (STRIP ${GCC_VERSION} GCC_VERSION)
+find_package (Freetype REQUIRED)
+
+find_path (GRAPHENE_INCLUDE_DIRS NAMES GrapheneApi.h HINTS ENV GRAPHENE_DIR PATH_SUFFIXES include)
+find_library (GRAPHENE_LIBRARIES NAMES graphene graphene-shared HINTS ENV GRAPHENE_DIR PATH_SUFFIXES lib)
+if (NOT GRAPHENE_INCLUDE_DIRS OR NOT GRAPHENE_LIBRARIES)
+    message (FATAL_ERROR "Could NOT find Graphene")
 endif ()
 
-if (DEFINED GCC_VERSION AND GCC_VERSION VERSION_GREATER 4.7.0)
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -std=gnu++11")
-    set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
-    set (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
-    set (CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} -Os")
-    set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -g -O3")
-else ()
-    message (FATAL_ERROR "GCC 4.7.0 or higher is required!")
+find_path (MATH_INCLUDE_DIRS NAMES MathApi.h HINTS ENV MATH_DIR PATH_SUFFIXES include)
+find_library (MATH_LIBRARIES NAMES math math-shared HINTS ENV MATH_DIR PATH_SUFFIXES lib)
+if (NOT MATH_INCLUDE_DIRS OR NOT MATH_LIBRARIES)
+    message (FATAL_ERROR "Could NOT find Math")
 endif ()
 
-find_package (OpenGL REQUIRED)
-
-include (FindPkgConfig)
-pkg_search_module (SDL2 REQUIRED sdl2)
-pkg_search_module (SDL2_IMAGE REQUIRED SDL2_image)
-pkg_search_module (GLEW REQUIRED glew)
-pkg_search_module (MATH REQUIRED math)
-pkg_search_module (FREETYPE REQUIRED freetype2)
-
-set (RUBIK_DATADIR ${CMAKE_INSTALL_PREFIX}/share/rubik
-     CACHE PATH "Data directory")
-set (RUBIK_RESOURCES fonts meshes shaders textures)
-set (RUBIK_INCLUDE src src/common src/game src/opengl src/utils)
-
-file (GLOB_RECURSE RUBIK_SOURCES src/*.cpp)
-include_directories (${RUBIK_INCLUDE} ${MATH_INCLUDE_DIRS}
-                     ${FREETYPE_INCLUDE_DIRS} ${PROJECT_BINARY_DIR})
+find_path (SIGNALS_INCLUDE_DIRS NAMES Signals.h HINTS ENV SIGNALS_DIR PATH_SUFFIXES include)
+if (NOT SIGNALS_INCLUDE_DIRS)
+    message (FATAL_ERROR "Could NOT find Signals")
+endif ()
 
 set (RUBIK_NAME Rubik)
 set (RUBIK_DESCRIPTION "Rubik's Cube game")
 set (RUBIK_VERSION 0.1.10)
 
-configure_file (Config.h.in Config.h @ONLY)
+set (RUBIK_DATADIR ${CMAKE_INSTALL_PREFIX}/share/rubik CACHE PATH "Data directory")
 
 set (RUBIK_EXECUTABLE rubik)
-add_executable (${RUBIK_EXECUTABLE} ${RUBIK_SOURCES})
+set (RUBIK_RESOURCE_DIRS assets fonts shaders textures)
 
-target_link_libraries (${RUBIK_EXECUTABLE} ${OPENGL_LIBRARIES})
-target_link_libraries (${RUBIK_EXECUTABLE} ${SDL2_LIBRARIES})
-target_link_libraries (${RUBIK_EXECUTABLE} ${SDL2_IMAGE_LIBRARIES})
-target_link_libraries (${RUBIK_EXECUTABLE} ${GLEW_LIBRARIES})
-target_link_libraries (${RUBIK_EXECUTABLE} ${MATH_LIBRARIES})
-target_link_libraries (${RUBIK_EXECUTABLE} ${FREETYPE_LIBRARIES})
+file (GLOB_RECURSE RUBIK_SOURCES src/*.cpp)
+include_directories (src ${PROJECT_BINARY_DIR} ${GRAPHENE_INCLUDE_DIRS} ${FREETYPE_INCLUDE_DIRS} ${MATH_INCLUDE_DIRS} ${SIGNALS_INCLUDE_DIRS})
+
+add_executable (${RUBIK_EXECUTABLE} ${RUBIK_SOURCES})
+set_target_properties (${RUBIK_EXECUTABLE} PROPERTIES
+    CXX_STANDARD 11
+    CXX_STANDARD_REQUIRED YES
+    CXX_EXTENSIONS NO
+)
+target_compile_options (${RUBIK_EXECUTABLE} PUBLIC
+    $<$<CXX_COMPILER_ID:GNU>:-Wall -Wextra -Werror -pedantic>
+    $<$<CXX_COMPILER_ID:MSVC>:/WX>
+)
+
+set (RUBIK_LINK_LIBRARIES ${GRAPHENE_LIBRARIES} ${FREETYPE_LIBRARIES} ${MATH_LIBRARIES})
+target_link_libraries (${RUBIK_EXECUTABLE} ${RUBIK_LINK_LIBRARIES})
+
+configure_file (Config.h.in Config.h @ONLY)
 
 install (TARGETS ${RUBIK_EXECUTABLE} DESTINATION bin)
 install (DIRECTORY ${RUBIK_RESOURCES} DESTINATION ${RUBIK_DATADIR})
