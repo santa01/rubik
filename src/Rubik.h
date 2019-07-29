@@ -24,24 +24,11 @@
 #define RUBIK_H
 
 #include <Engine.h>
+#include <Input.h>
 #include <Puzzle.h>
 #include <Label.h>
 #include <Vec3.h>
 #include <memory>
-
-#if defined(_WIN32)
-#define KEY_ESC   1
-#define KEY_Y     21
-#define KEY_P     25
-#define KEY_S     31
-#define KEY_N     49
-#elif defined(__linux__)
-#define KEY_ESC   9
-#define KEY_Y     29
-#define KEY_P     33
-#define KEY_S     39
-#define KEY_N     57
-#endif
 
 namespace Rubik {
 
@@ -54,7 +41,7 @@ public:
 
 private:
     void onMouseMotion(int x, int y);
-    void onKeyboardButton(int button, bool state);
+    void onKeyboardKey(Graphene::KeyboardKey key, bool state);
     void onSetup();
     void onIdle();
 

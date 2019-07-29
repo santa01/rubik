@@ -55,7 +55,7 @@ void Rubik::onMouseMotion(int x, int y) {
 
     switch (this->state) {
         case GameState::RUNNING:
-            if (mouseState[Graphene::MouseButton::LEFT] || mouseState[Graphene::MouseButton::RIGHT]) {
+            if (mouseState[Graphene::MouseButton::BUTTON_LEFT] || mouseState[Graphene::MouseButton::BUTTON_RIGHT]) {
                 // this->frameBuffer->bind();
 
                 // float data[4];
@@ -65,11 +65,11 @@ void Rubik::onMouseMotion(int x, int y) {
                 // roundf(data[2] * 100);
             }
 
-            if (mouseState[Graphene::MouseButton::LEFT] && !mouseState[Graphene::MouseButton::RIGHT]) {
+            if (mouseState[Graphene::MouseButton::BUTTON_LEFT] && !mouseState[Graphene::MouseButton::BUTTON_RIGHT]) {
                 // if (selectedCube.get(Math::Vec3::Z) == 0.0f) {  // Front facet
                     this->rotateCube(selectedCube, motionDirection);
                 // }
-            } else if (mouseState[Graphene::MouseButton::RIGHT] && !mouseState[Graphene::MouseButton::LEFT]) {
+            } else if (mouseState[Graphene::MouseButton::BUTTON_RIGHT] && !mouseState[Graphene::MouseButton::BUTTON_LEFT]) {
                 // if (Puzzle::isSelectionValid(selectedCube)) {
                     this->rotateCube(std::make_pair(-1, -1), motionDirection);
                 // }
@@ -81,13 +81,13 @@ void Rubik::onMouseMotion(int x, int y) {
     }
 }
 
-void Rubik::onKeyboardButton(int button, bool state) {
+void Rubik::onKeyboardKey(Graphene::KeyboardKey key, bool state) {
     static bool pausePressed = false;
     static float rotationSpeed = 0.0f;
 
     switch (this->state) {
         case GameState::RUNNING:
-            if (button == KEY_S) {
+            if (key == Graphene::KeyboardKey::KEY_S) {
                 if (state) {
                     if (rotationSpeed == 0.0f) {
                         rotationSpeed = this->puzzle->getRotationSpeed();
@@ -101,7 +101,7 @@ void Rubik::onKeyboardButton(int button, bool state) {
             // Fall through
 
         case GameState::PAUSED:
-            if (button == KEY_P) {
+            if (key == Graphene::KeyboardKey::KEY_P) {
                 if (state) {
                     if (!pausePressed) {
                         this->state = (this->state == GameState::RUNNING) ? GameState::PAUSED : GameState::RUNNING;
@@ -128,7 +128,7 @@ void Rubik::onIdle() {
     this->updateUI();
 
     const Graphene::KeyboardState& keyboardState = this->getWindow()->getKeyboardState();
-    if (this->state == GameState::RUNNING && !keyboardState[KEY_S]) {
+    if (this->state == GameState::RUNNING && !keyboardState[Graphene::KeyboardKey::KEY_S]) {
         this->gameTime += this->getFrameTime();
     }
 }
@@ -232,9 +232,9 @@ void Rubik::updateScene() {
         case GameState::RUNNING:
             if (this->puzzle->isCompleted()) {
                 this->state = GameState::FINISHED;
-            } else if (keyboardState[KEY_ESC]) {
+            } else if (keyboardState[Graphene::KeyboardKey::KEY_ESCAPE]) {
                 this->state = GameState::QUIT;
-            } else if (keyboardState[KEY_S]) {
+            } else if (keyboardState[Graphene::KeyboardKey::KEY_S]) {
                 this->puzzle->selectCube(std::make_pair(std::rand() % 3, std::rand() % 3));
                 this->puzzle->setAnimationState(static_cast<AnimationState>(std::rand() % 4 + 1));
             }
@@ -243,17 +243,17 @@ void Rubik::updateScene() {
             break;
 
         case GameState::QUIT:
-            if (keyboardState[KEY_Y]) {
+            if (keyboardState[Graphene::KeyboardKey::KEY_Y]) {
                 this->exit(0);
-            } else if (keyboardState[KEY_N]) {
+            } else if (keyboardState[Graphene::KeyboardKey::KEY_N]) {
                 this->state = GameState::RUNNING;
             }
             break;
 
         case GameState::FINISHED:
-            if (keyboardState[KEY_N]) {
+            if (keyboardState[Graphene::KeyboardKey::KEY_N]) {
                 this->exit(0);
-            } else if (keyboardState[KEY_Y]) {
+            } else if (keyboardState[Graphene::KeyboardKey::KEY_Y]) {
                 this->moves = 0;
                 this->gameTime = 0.0f;
                 this->state = GameState::RUNNING;
