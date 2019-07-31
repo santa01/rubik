@@ -21,6 +21,7 @@
  */
 
 #include <Puzzle.h>
+#include <SceneNode.h>
 #include <Logger.h>
 #include <ctime>
 
@@ -56,13 +57,17 @@ void Puzzle::setRotationSpeed(float rotationSpeed) {
     this->rotationSpeed = rotationSpeed;
 }
 
-void Puzzle::attachCube(std::shared_ptr<Graphene::SceneNode> cube, int cubeId) {
-    if (cubeId >= 27) {
+void Puzzle::attachCube(const std::shared_ptr<Graphene::Entity> cube) {
+    if (this->cubesAttached >= 27) {
         throw std::runtime_error(Graphene::LogFormat("attachCube()"));
     }
 
-    Cube* linearCubes = &this->cubes[0][0][0];
-    linearCubes[cubeId] = std::make_pair(cube, cubeId);
+    std::shared_ptr<Graphene::Entity>* cubesLinear = &this->cubes[0][0][0];
+    int* solutionLinear = &this->solutionTemplate[0][0][0];
+
+    cubesLinear[this->cubesAttached] = cube;
+    solutionLinear[this->cubesAttached] = cube->getId();
+    this->cubesAttached++;
 }
 
 void Puzzle::shuffle(int times) {
@@ -73,13 +78,13 @@ void Puzzle::shuffle(int times) {
     }
 }
 
-bool Puzzle::isCompleted() {
-    bool completed = false;
+bool Puzzle::isSolved() {
+    bool solved = false;
 
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
-            if (!completed && this->isOrdered()) {
-                completed = true;
+            if (!solved && this->isOrdered()) {
+                solved = true;
             }
 
             for (int k = 0; k < 3; k++) {
@@ -92,7 +97,7 @@ bool Puzzle::isCompleted() {
         }
     }
 
-    return completed;
+    return solved;
 }
 
 void Puzzle::animate(float frameTime) {
@@ -194,7 +199,8 @@ void Puzzle::rotateEntities(const std::pair<int, int>& selectedCube, float angle
         case AnimationState::UP_ROTATION:
             for (int j = 0; j < 3; j++) {
                 for (int k = 0; k < 3; k++) {
-                    this->cubes[row][j][k].first->roll(angle);
+                    // Rotate the parent SceneNode
+                    this->cubes[row][j][k]->getParent()->roll(angle);
                 }
             }
             break;
@@ -203,7 +209,8 @@ void Puzzle::rotateEntities(const std::pair<int, int>& selectedCube, float angle
         case AnimationState::RIGHT_ROTATION:
             for (int i = 0; i < 3; i++) {
                 for (int k = 0; k < 3; k++) {
-                    this->cubes[i][column][k].first->yaw(angle);
+                    // Rotate the parent SceneNode
+                    this->cubes[i][column][k]->getParent()->yaw(angle);
                 }
             }
             break;
@@ -214,12 +221,10 @@ void Puzzle::rotateEntities(const std::pair<int, int>& selectedCube, float angle
 }
 
 bool Puzzle::isOrdered() const {
-    int id = 0;
-
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
             for (int k = 0; k < 3; k++) {
-                if (this->cubes[i][j][k].second != id++) {
+                if (this->cubes[i][j][k]->getId() != this->solutionTemplate[i][j][k]) {
                     return false;
                 }
             }

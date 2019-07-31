@@ -159,18 +159,17 @@ void Rubik::setupScene() {
     player->attachObject(camera);
     player->translate(0.0f, 0.0f, -5.0f);
 
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            for (int k = 0; k < 3; k++) {
+    for (int i = -1; i <= 1; i++) {
+        for (int j = -1; j <= 1; j++) {
+            for (int k = -1; k <= 1; k++) {
                 auto cubepart = scene->createNode();
                 cube->attachNode(cubepart);
 
                 auto entity = objectManager.createEntity("assets/cubepart.entity");
-                entity->translate(static_cast<float>(i - 1), static_cast<float>(j - 1), static_cast<float>(k - 1));
-                cubepart->attachObject(entity);
+                entity->translate(static_cast<float>(i), static_cast<float>(j), static_cast<float>(k));
 
-                int cubeId = i * 9 + j * 3 + k;
-                this->puzzle->attachCube(cubepart, cubeId);
+                cubepart->attachObject(entity);
+                this->puzzle->attachCube(entity);
             }
         }
     }
@@ -230,7 +229,7 @@ void Rubik::updateScene() {
 
     switch (this->state) {
         case GameState::RUNNING:
-            if (this->puzzle->isCompleted()) {
+            if (this->puzzle->isSolved()) {
                 this->state = GameState::FINISHED;
             } else if (keyboardState[Graphene::KeyboardKey::KEY_ESCAPE]) {
                 this->state = GameState::QUIT;
@@ -284,7 +283,7 @@ void Rubik::updateUI() {
 
     switch (this->state) {
         case GameState::FINISHED:
-            this->promptLabel->setText(L"Done! New game? Y/N");
+            this->promptLabel->setText(L"Solved! New game? Y/N");
             break;
 
         case GameState::PAUSED:

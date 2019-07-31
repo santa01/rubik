@@ -24,7 +24,7 @@
 #define PUZZLE_H
 
 #include <NonCopyable.h>
-#include <SceneNode.h>
+#include <Entity.h>
 #include <utility>
 
 namespace Rubik {
@@ -43,9 +43,9 @@ public:
     float getRotationSpeed() const;
     void setRotationSpeed(float rotationSpeed);
 
-    void attachCube(std::shared_ptr<Graphene::SceneNode> cube, int cubeId);
+    void attachCube(const std::shared_ptr<Graphene::Entity> cube);
     void shuffle(int times);
-    bool isCompleted();
+    bool isSolved();
 
     void animate(float frameTime);
 
@@ -55,8 +55,9 @@ private:
 
     bool isOrdered() const;
 
-    typedef std::pair<std::shared_ptr<Graphene::SceneNode>, int> Cube;
-    Cube cubes[3][3][3];
+    std::shared_ptr<Graphene::Entity> cubes[3][3][3];
+    int solutionTemplate[3][3][3];
+    int cubesAttached = 0;
 
     std::pair<int, int> selectedCube = std::make_pair(-1, -1);
     AnimationState state = AnimationState::IDLE;
