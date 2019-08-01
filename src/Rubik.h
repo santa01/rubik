@@ -23,11 +23,14 @@
 #ifndef RUBIK_H
 #define RUBIK_H
 
+#include <Puzzle.h>
 #include <Engine.h>
 #include <Input.h>
-#include <Puzzle.h>
+#include <FrameBuffer.h>
+#include <Entity.h>
 #include <Label.h>
 #include <Vec3.h>
+#include <vector>
 #include <memory>
 
 namespace Rubik {
@@ -50,12 +53,15 @@ private:
     void updateScene();
     void updateUI();
 
-    void rotateCube(const std::pair<int, int>& selectedCube, const Math::Vec3& direction);
+    void rotateCube(int objectId, const Math::Vec3& direction);
 
     std::shared_ptr<Puzzle> puzzle;
     std::shared_ptr<Graphene::Label> timeLabel;
     std::shared_ptr<Graphene::Label> movesLabel;
     std::shared_ptr<Graphene::Label> promptLabel;
+
+    std::vector<int> puzzleObjects;
+    std::shared_ptr<Graphene::FrameBuffer> pickupBuffer;
 
     int shuffles = 20;
     int moves = 0;

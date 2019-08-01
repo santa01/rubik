@@ -22,13 +22,15 @@
 
 #include <Rubik.h>
 #include <ObjectManager.h>
+#include <RenderManager.h>
 #include <Window.h>
 #include <OpenGL.h>
+#include <Shader.h>
 #include <Font.h>
 #include <Layout.h>
 #include <sstream>
 #include <iomanip>
-#include <string>
+#include <algorithm>
 #include <cmath>
 
 namespace Rubik {
@@ -49,30 +51,32 @@ void Rubik::onMouseMotion(int x, int y) {
     static Graphene::MousePosition mousePosition(this->getWindow()->getMousePosition());
     const Graphene::MouseState& mouseState = this->getWindow()->getMouseState();
 
-    auto selectedCube = std::make_pair(-1, -1);
     Math::Vec3 motionDirection(static_cast<float>(x - mousePosition.first), static_cast<float>(y - mousePosition.second), 0.0f);
     mousePosition = this->getWindow()->getMousePosition();
+
+    int objectId = -1;
+    bool isCubeSelected = false;
+    bool isFrontCubeSelected = false;
 
     switch (this->state) {
         case GameState::RUNNING:
             if (mouseState[Graphene::MouseButton::BUTTON_LEFT] || mouseState[Graphene::MouseButton::BUTTON_RIGHT]) {
-                // this->frameBuffer->bind();
+                int pickupX = x * this->pickupBuffer->getWidth() / this->getWindow()->getWidth();
+                int pickupY = (this->getWindow()->getHeight() - y) * this->pickupBuffer->getHeight() / this->getWindow()->getHeight();
+                this->pickupBuffer->getPixel(pickupX, pickupY, GL_RED_INTEGER, GL_INT, &objectId);
 
-                // float data[4];
-                // glReadPixels(x, this->getWindow()->getHeight() - y, 1, 1, GL_RGBA, GL_FLOAT, data);
-
-                // selectedCube = std::make_pair(roundf(data[0] * 100), roundf(data[1] * 100));
-                // roundf(data[2] * 100);
+                isCubeSelected = (std::find(this->puzzleObjects.begin(), this->puzzleObjects.end(), objectId) != this->puzzleObjects.end());
+                isFrontCubeSelected = (isCubeSelected && std::get<2>(this->puzzle->getCubePosition(objectId)) == 0);
             }
 
             if (mouseState[Graphene::MouseButton::BUTTON_LEFT] && !mouseState[Graphene::MouseButton::BUTTON_RIGHT]) {
-                // if (selectedCube.get(Math::Vec3::Z) == 0.0f) {  // Front facet
-                    this->rotateCube(selectedCube, motionDirection);
-                // }
+                if (isFrontCubeSelected) {
+                    this->rotateCube(objectId, motionDirection);
+                }
             } else if (mouseState[Graphene::MouseButton::BUTTON_RIGHT] && !mouseState[Graphene::MouseButton::BUTTON_LEFT]) {
-                // if (Puzzle::isSelectionValid(selectedCube)) {
-                    this->rotateCube(std::make_pair(-1, -1), motionDirection);
-                // }
+                if (isCubeSelected) {
+                    this->rotateCube(-1, motionDirection);
+                }
             }
             break;
 
@@ -156,7 +160,9 @@ void Rubik::setupScene() {
     sceneRoot->attachObject(background);
 
     auto camera = objectManager.createCamera(Graphene::ProjectionType::PERSPECTIVE);
+    auto pickupCamera = objectManager.createCamera(Graphene::ProjectionType::PERSPECTIVE);
     player->attachObject(camera);
+    player->attachObject(pickupCamera);
     player->translate(0.0f, 0.0f, -5.0f);
 
     for (int i = -1; i <= 1; i++) {
@@ -167,9 +173,10 @@ void Rubik::setupScene() {
 
                 auto entity = objectManager.createEntity("assets/cubepart.entity");
                 entity->translate(static_cast<float>(i), static_cast<float>(j), static_cast<float>(k));
-
                 cubepart->attachObject(entity);
+
                 this->puzzle->attachCube(entity);
+                this->puzzleObjects.push_back(entity->getId());
             }
         }
     }
@@ -183,6 +190,17 @@ void Rubik::setupScene() {
     auto window = this->getWindow();
     auto viewport = window->createViewport(0, 0, window->getWidth(), window->getHeight());
     viewport->setCamera(camera);
+
+    /* Create framebuffer for object picking */
+
+    int bufferWidth = 256;
+    int bufferHeight = static_cast<int>(bufferWidth / camera->getAspectRatio());
+    this->pickupBuffer = this->createFrameBuffer(bufferWidth, bufferHeight, GL_R32I);  // Render object IDs into texture
+
+    auto pickupViewport = pickupBuffer->createViewport(0, 0, this->pickupBuffer->getWidth(), this->pickupBuffer->getHeight());
+    pickupViewport->setCamera(pickupCamera);
+
+    Graphene::GetRenderManager().setShader(Graphene::RenderStep::BUFFER, std::make_shared<Graphene::Shader>("shaders/object_pickup.shader"));
 }
 
 void Rubik::setupUI() {
@@ -199,9 +217,9 @@ void Rubik::setupUI() {
     camera->setFarPlane(1.0f);
 
     auto font = std::make_shared<Graphene::Font>("fonts/dejavu-sans.ttf", 14);
-    this->timeLabel = std::make_shared<Graphene::Label>(150, 20, font);
-    this->movesLabel = std::make_shared<Graphene::Label>(150, 20, font);
-    this->promptLabel = std::make_shared<Graphene::Label>(150, 20, font);
+    this->timeLabel = std::make_shared<Graphene::Label>(200, 20, font);
+    this->movesLabel = std::make_shared<Graphene::Label>(200, 20, font);
+    this->promptLabel = std::make_shared<Graphene::Label>(200, 20, font);
 
     uiRootNode->attachObject(camera);
     uiRootNode->attachObject(this->timeLabel);
@@ -234,7 +252,7 @@ void Rubik::updateScene() {
             } else if (keyboardState[Graphene::KeyboardKey::KEY_ESCAPE]) {
                 this->state = GameState::QUIT;
             } else if (keyboardState[Graphene::KeyboardKey::KEY_S]) {
-                this->puzzle->selectCube(std::make_pair(std::rand() % 3, std::rand() % 3));
+                this->puzzle->selectCube(this->puzzleObjects[std::rand() % this->puzzleObjects.size()]);
                 this->puzzle->setAnimationState(static_cast<AnimationState>(std::rand() % 4 + 1));
             }
 
@@ -283,7 +301,7 @@ void Rubik::updateUI() {
 
     switch (this->state) {
         case GameState::FINISHED:
-            this->promptLabel->setText(L"Solved! New game? Y/N");
+            this->promptLabel->setText(L"Done! New game? Y/N");
             break;
 
         case GameState::PAUSED:
@@ -300,7 +318,7 @@ void Rubik::updateUI() {
     }
 }
 
-void Rubik::rotateCube(const std::pair<int, int>& selectedCube, const Math::Vec3& direction) {
+void Rubik::rotateCube(int objectId, const Math::Vec3& direction) {
     if (this->state == GameState::PAUSED) {
         return;  // No action on pause
     }
@@ -309,7 +327,7 @@ void Rubik::rotateCube(const std::pair<int, int>& selectedCube, const Math::Vec3
         return;  // Movement is too short
     }
 
-    if (Puzzle::isSelectionValid(selectedCube) && this->puzzle->getAnimationState() == AnimationState::IDLE) {
+    if (objectId != -1 && this->puzzle->getAnimationState() == AnimationState::IDLE) {
         this->moves++;
     }
 
@@ -323,7 +341,7 @@ void Rubik::rotateCube(const std::pair<int, int>& selectedCube, const Math::Vec3
         puzzleState = (yDirection > 0) ? AnimationState::DOWN_ROTATION : AnimationState::UP_ROTATION;
     }
 
-    this->puzzle->selectCube(selectedCube);
+    this->puzzle->selectCube(objectId);
     this->puzzle->setAnimationState(puzzleState);
 }
 

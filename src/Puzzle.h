@@ -25,7 +25,7 @@
 
 #include <NonCopyable.h>
 #include <Entity.h>
-#include <utility>
+#include <tuple>
 
 namespace Rubik {
 
@@ -33,9 +33,8 @@ enum class AnimationState { IDLE, LEFT_ROTATION, RIGHT_ROTATION, UP_ROTATION, DO
 
 class Puzzle: public Graphene::NonCopyable {
 public:
-    const std::pair<int, int>& getSelectedCube() const;
-    void selectCube(const std::pair<int, int>& selectedCube);
-    static bool isSelectionValid(const std::pair<int, int>& selectedCube);
+    int getSelectedCube() const;
+    void selectCube(int objectId);
 
     AnimationState getAnimationState() const;
     void setAnimationState(AnimationState state);
@@ -44,22 +43,23 @@ public:
     void setRotationSpeed(float rotationSpeed);
 
     void attachCube(const std::shared_ptr<Graphene::Entity> cube);
+    std::tuple<int, int, int> getCubePosition(int objectId) const;
+
     void shuffle(int times);
     bool isSolved();
 
     void animate(float frameTime);
 
 private:
-    void rotateFacet(const std::pair<int, int>& selectedCube, AnimationState state);
-    void rotateEntities(const std::pair<int, int>& selectedCube, float angle, AnimationState state);
-
+    void rotateFacet(int row, int column, AnimationState state);
+    void rotateEntities(int row, int column, float angle, AnimationState state);
     bool isOrdered() const;
 
     std::shared_ptr<Graphene::Entity> cubes[3][3][3];
-    int solutionTemplate[3][3][3];
-    int cubesAttached = 0;
+    std::shared_ptr<Graphene::Entity> solution[3][3][3];
+    int attachedCubes = 0;
+    int selectedCube = -1;
 
-    std::pair<int, int> selectedCube = std::make_pair(-1, -1);
     AnimationState state = AnimationState::IDLE;
     float rotationSpeed = 300.0f;
 };

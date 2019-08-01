@@ -23,22 +23,17 @@
 #include <Puzzle.h>
 #include <SceneNode.h>
 #include <Logger.h>
+#include <algorithm>
 #include <ctime>
 
 namespace Rubik {
 
-const std::pair<int, int>& Puzzle::getSelectedCube() const {
+int Puzzle::getSelectedCube() const {
     return this->selectedCube;
 }
 
-void Puzzle::selectCube(const std::pair<int, int>& selectedCube) {
-    this->selectedCube = selectedCube;
-}
-
-bool Puzzle::isSelectionValid(const std::pair<int, int>& selectedCube) {
-    bool isRowValid = (selectedCube.first >=0 && selectedCube.first <= 2);
-    bool isColumnValid = (selectedCube.second >= 0 && selectedCube.second <= 2);
-    return (isRowValid && isColumnValid);
+void Puzzle::selectCube(int objectId) {
+    this->selectedCube = objectId;
 }
 
 AnimationState Puzzle::getAnimationState() const {
@@ -58,21 +53,35 @@ void Puzzle::setRotationSpeed(float rotationSpeed) {
 }
 
 void Puzzle::attachCube(const std::shared_ptr<Graphene::Entity> cube) {
-    if (this->cubesAttached >= 27) {
+    if (this->attachedCubes >= 27) {
         throw std::runtime_error(Graphene::LogFormat("attachCube()"));
     }
 
-    std::shared_ptr<Graphene::Entity>* cubesLinear = &this->cubes[0][0][0];
-    int* solutionLinear = &this->solutionTemplate[0][0][0];
+    std::shared_ptr<Graphene::Entity>* cubes = &this->cubes[0][0][0];
+    std::shared_ptr<Graphene::Entity>* solution = &this->solution[0][0][0];
 
-    cubesLinear[this->cubesAttached] = cube;
-    solutionLinear[this->cubesAttached] = cube->getId();
-    this->cubesAttached++;
+    cubes[this->attachedCubes] = cube;
+    solution[this->attachedCubes] = cube;
+    this->attachedCubes++;
+}
+
+std::tuple<int, int, int> Puzzle::getCubePosition(int objectId) const {
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            for (int k = 0; k < 3; k++) {
+                if (this->cubes[i][j][k]->getId() == objectId) {
+                    return std::make_tuple(i, j, k);
+                }
+            }
+        }
+    }
+
+    return std::make_tuple(-1, -1, -1);
 }
 
 void Puzzle::shuffle(int times) {
     for (int i = 0; i < times; i++) {
-        this->selectedCube = std::make_pair(std::rand() % 3, std::rand() % 3);
+        this->selectedCube = this->cubes[std::rand() % 3][std::rand() % 3][std::rand() % 3]->getId();
         this->state = static_cast<AnimationState>(std::rand() % 4 + 1);
         this->animate(90.0f / this->rotationSpeed);
     }
@@ -88,12 +97,12 @@ bool Puzzle::isSolved() {
             }
 
             for (int k = 0; k < 3; k++) {
-                this->rotateFacet(std::make_pair(k, k), AnimationState::RIGHT_ROTATION);
+                this->rotateFacet(k, k, AnimationState::RIGHT_ROTATION);
             }
         }
 
         for (int k = 0; k < 3; k++) {
-            this->rotateFacet(std::make_pair(k, k), AnimationState::UP_ROTATION);
+            this->rotateFacet(k, k, AnimationState::UP_ROTATION);
         }
     }
 
@@ -101,7 +110,7 @@ bool Puzzle::isSolved() {
 }
 
 void Puzzle::animate(float frameTime) {
-    static std::pair<int, int> currentSelectedCube = this->selectedCube;
+    static int currentSelectedCube = this->selectedCube;
     static AnimationState currentState = this->state;
 
     if (currentState == AnimationState::IDLE && this->state != AnimationState::IDLE) {
@@ -128,16 +137,17 @@ void Puzzle::animate(float frameTime) {
             rotationAngle += stepAngle;
             stepAngle *= rotationDirection;
 
-            if (Puzzle::isSelectionValid(currentSelectedCube)) {
-                this->rotateEntities(currentSelectedCube, stepAngle, currentState);
+            if (currentSelectedCube != -1) {
+                std::tuple<int, int, int> cubePosition(this->getCubePosition(currentSelectedCube));
+                this->rotateEntities(std::get<0>(cubePosition), std::get<1>(cubePosition), stepAngle, currentState);
                 if (rotationAngle == 90.0f) {
-                    this->rotateFacet(currentSelectedCube, currentState);
+                    this->rotateFacet(std::get<0>(cubePosition), std::get<1>(cubePosition), currentState);
                 }
             } else {
                 for (int i = 0; i < 3; i++) {
-                    this->rotateEntities(std::make_pair(i, i), stepAngle, currentState);
+                    this->rotateEntities(i, i, stepAngle, currentState);
                     if (rotationAngle == 90.0f) {
-                        this->rotateFacet(std::make_pair(i, i), currentState);
+                        this->rotateFacet(i, i, currentState);
                     }
                 }
             }
@@ -154,10 +164,7 @@ void Puzzle::animate(float frameTime) {
     }
 }
 
-void Puzzle::rotateFacet(const std::pair<int, int>& selectedCube, AnimationState state) {
-    int row = selectedCube.first;
-    int column = selectedCube.second;
-
+void Puzzle::rotateFacet(int row, int column, AnimationState state) {
     for (int i = 0; i < 2; i++) {
         switch (state) {
             case AnimationState::LEFT_ROTATION:
@@ -190,10 +197,7 @@ void Puzzle::rotateFacet(const std::pair<int, int>& selectedCube, AnimationState
     }
 }
 
-void Puzzle::rotateEntities(const std::pair<int, int>& selectedCube, float angle, AnimationState state) {
-    int row = selectedCube.first;
-    int column = selectedCube.second;
-
+void Puzzle::rotateEntities(int row, int column, float angle, AnimationState state) {
     switch (state) {
         case AnimationState::DOWN_ROTATION:
         case AnimationState::UP_ROTATION:
@@ -221,17 +225,10 @@ void Puzzle::rotateEntities(const std::pair<int, int>& selectedCube, float angle
 }
 
 bool Puzzle::isOrdered() const {
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            for (int k = 0; k < 3; k++) {
-                if (this->cubes[i][j][k]->getId() != this->solutionTemplate[i][j][k]) {
-                    return false;
-                }
-            }
-        }
-    }
+    const std::shared_ptr<Graphene::Entity>* cubes = &this->cubes[0][0][0];
+    const std::shared_ptr<Graphene::Entity>* solution = &this->solution[0][0][0];
 
-    return true;
+    return std::equal(cubes, cubes + this->attachedCubes, solution);
 }
 
 }  // namespace Rubik
