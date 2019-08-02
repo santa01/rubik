@@ -24,7 +24,6 @@
 #include <ArgumentParser.h>
 #include <Config.h>
 #include <EngineConfig.h>
-#include <cstdlib>
 
 int main(int argc, char** argv) {
     Rubik::ArgumentParser arguments;

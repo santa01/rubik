@@ -24,7 +24,7 @@
 #include <SceneNode.h>
 #include <Logger.h>
 #include <algorithm>
-#include <ctime>
+#include <cstdlib>
 
 namespace Rubik {
 
@@ -110,19 +110,19 @@ bool Puzzle::isSolved() {
 }
 
 void Puzzle::animate(float frameTime) {
-    static int currentSelectedCube = this->selectedCube;
-    static AnimationState currentState = this->state;
+    static int selectedCube = this->selectedCube;
+    static AnimationState state = this->state;
 
-    if (currentState == AnimationState::IDLE && this->state != AnimationState::IDLE) {
-        currentSelectedCube = this->selectedCube;
-        currentState = this->state;
+    if (state == AnimationState::IDLE && this->state != AnimationState::IDLE) {
+        selectedCube = this->selectedCube;
+        state = this->state;
     }
 
     static float rotationAngle = 0.0f;
     float rotationDirection = 1.0f;
     float stepAngle = this->rotationSpeed * frameTime;
 
-    switch (currentState) {
+    switch (state) {
         case AnimationState::RIGHT_ROTATION:
         case AnimationState::DOWN_ROTATION:
             rotationDirection = -1.0f;
@@ -137,24 +137,24 @@ void Puzzle::animate(float frameTime) {
             rotationAngle += stepAngle;
             stepAngle *= rotationDirection;
 
-            if (currentSelectedCube != -1) {
-                std::tuple<int, int, int> cubePosition(this->getCubePosition(currentSelectedCube));
-                this->rotateEntities(std::get<0>(cubePosition), std::get<1>(cubePosition), stepAngle, currentState);
+            if (selectedCube != -1) {
+                std::tuple<int, int, int> cubePosition(this->getCubePosition(selectedCube));
+                this->rotateEntities(std::get<0>(cubePosition), std::get<1>(cubePosition), stepAngle, state);
                 if (rotationAngle == 90.0f) {
-                    this->rotateFacet(std::get<0>(cubePosition), std::get<1>(cubePosition), currentState);
+                    this->rotateFacet(std::get<0>(cubePosition), std::get<1>(cubePosition), state);
                 }
             } else {
                 for (int i = 0; i < 3; i++) {
-                    this->rotateEntities(i, i, stepAngle, currentState);
+                    this->rotateEntities(i, i, stepAngle, state);
                     if (rotationAngle == 90.0f) {
-                        this->rotateFacet(i, i, currentState);
+                        this->rotateFacet(i, i, state);
                     }
                 }
             }
 
             if (rotationAngle == 90.0f) {
                 this->state = AnimationState::IDLE;
-                currentState = AnimationState::IDLE;
+                state = AnimationState::IDLE;
                 rotationAngle = 0.0f;
             }
             break;

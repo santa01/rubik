@@ -26,12 +26,15 @@
 #include <Window.h>
 #include <OpenGL.h>
 #include <Shader.h>
+#include <Entity.h>
 #include <Font.h>
 #include <Layout.h>
 #include <sstream>
 #include <iomanip>
 #include <algorithm>
 #include <cmath>
+#include <ctime>
+#include <cstdlib>
 
 namespace Rubik {
 

@@ -27,7 +27,6 @@
 #include <Engine.h>
 #include <Input.h>
 #include <FrameBuffer.h>
-#include <Entity.h>
 #include <Label.h>
 #include <Vec3.h>
 #include <vector>

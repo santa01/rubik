@@ -10,9 +10,10 @@ Controls:
     <S> - shuffle cube;
     <ESQ> - quit game.
 
-Game renderer uses OpenGL 3.3 (as defined in shaders), game requires SDL2,
-SDL2_image, FreeType2 and GLEW libraries to be installed. Rubik also requires
-external math library: https://github.com/santa01/math
+Rubik requires graphene, math and signals libraries:
+https://github.com/santa01/graphene
+https://github.com/santa01/math
+https://github.com/santa01/signals
 
 By default rubik will try to load resources from /usr/local/share/rubik.
 You can override this path at configure time:
