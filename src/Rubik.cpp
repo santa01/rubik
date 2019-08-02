@@ -306,18 +306,21 @@ void Rubik::updateUI() {
     switch (this->state) {
         case GameState::FINISHED:
             this->promptLabel->setText(L"Done! New game? Y/N");
+            this->promptLabel->setVisible(true);
             break;
 
         case GameState::PAUSED:
             this->promptLabel->setText(L"Paused");
+            this->promptLabel->setVisible(true);
             break;
 
         case GameState::QUIT:
             this->promptLabel->setText(L"Quit? Y/N");
+            this->promptLabel->setVisible(true);
             break;
 
         default:
-            this->promptLabel->setText(L"");
+            this->promptLabel->setVisible(false);
             break;
     }
 }
