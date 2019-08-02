@@ -64,10 +64,9 @@ bool ArgumentParser::addArgument(char name, const std::string& longName, const s
     }
 
     auto argument = this->arguments[longName];
-    this->aliases[name] = longName;
-
     argument->shortOption = name;
 
+    this->aliases[name] = longName;
     return true;
 }
 
@@ -82,16 +81,16 @@ bool ArgumentParser::addArgument(const std::string& longName, const std::string&
     }
 
     auto argument = std::shared_ptr<Argument>(new Argument());
-    this->arguments[longName] = argument;
-
     argument->type = type;
     argument->description = description;
 
+    this->arguments[longName] = argument;
     return true;
 }
 
 bool ArgumentParser::parse(int argc, char** argv) {
     int optionIndex = 1;
+    bool parseFailed = false;
 
     while (optionIndex < argc) {
         char name;
@@ -101,8 +100,12 @@ bool ArgumentParser::parse(int argc, char** argv) {
         ArgumentType argumentType = this->prepareArgument(option, name, longName);
 
         if (argumentType == ArgumentType::INVALID) {
+            std::cerr << "Invalid argument '" << option << "'\n\n";
+            parseFailed = true;
             break;
-        } else if (argumentType == ArgumentType::SHORT_NAME) {
+        }
+
+        if (argumentType == ArgumentType::SHORT_NAME) {
             longName = this->aliases.at(name);
         }
 
@@ -112,8 +115,16 @@ bool ArgumentParser::parse(int argc, char** argv) {
             continue;
         }
 
+        if (optionIndex == argc) {
+            std::cerr << "Argument '" << option << "' requires value\n\n";
+            parseFailed = true;
+            break;
+        }
+
         std::string argumentValue(argv[optionIndex++]);
         if (!this->validateArgument(argument->type, argumentValue)) {
+            std::cerr << "Invalid '" << option << "' argument value '" << argumentValue << "'\n\n";
+            parseFailed = true;
             break;
         }
 
@@ -121,12 +132,10 @@ bool ArgumentParser::parse(int argc, char** argv) {
         argument->isSet = true;
     }
 
-    bool parseFailed = (optionIndex < argc);
-
-    if (this->isSet("version")) {
-        this->printVersion();
-    } else if (this->isSet("help") || parseFailed) {
+    if (this->isSet("help") || parseFailed) {
         this->printHelp(argv[0]);
+    } else if (this->isSet("version")) {
+        this->printVersion();
     }
 
     return !parseFailed;
@@ -137,8 +146,8 @@ bool ArgumentParser::isSet(char name) const {
 }
 
 bool ArgumentParser::isSet(const std::string& longName) const {
-    auto argument = this->arguments.find(longName);
-    return (argument != this->arguments.end() && argument->second->isSet);
+    auto argument = this->arguments.at(longName);
+    return argument->isSet;
 }
 
 std::string ArgumentParser::getOption(char name) const {
@@ -146,10 +155,6 @@ std::string ArgumentParser::getOption(char name) const {
 }
 
 std::string ArgumentParser::getOption(const std::string& longName) const {
-    if (!this->isSet(longName)) {
-        return "";
-    }
-
     auto argument = this->arguments.at(longName);
     return argument->value;
 }
@@ -199,12 +204,13 @@ bool ArgumentParser::validateArgument(ValueType type, const std::string& value) 
 }
 
 void ArgumentParser::printHelp(char* application) const {
-    std::cout << "Usage: " << application << " [option]..." << std::endl;
     if (!this->description.empty()) {
-        std::cout << this->description << std::endl;
+        std::cout << this->description << "\n";
     }
 
-    std::cout << std::endl << "Available options:" << std::endl;
+    std::cout << "Usage: " << application << " [option]..." << "\n\n"
+              << "Available options:" << "\n";
+
     for (auto& argument: this->arguments) {
         std::stringstream option;
         if (argument.second->shortOption != '\0') {
@@ -214,19 +220,19 @@ void ArgumentParser::printHelp(char* application) const {
         }
 
         std::stringstream longName;
-        longName << argument.first;
+        longName << argument.first << " ";
 
         switch (argument.second->type) {
             case ValueType::INT:
-                longName << "=[int]";
+                longName << "[int]";
                 break;
 
             case ValueType::FLOAT:
-                longName << "=[float]";
+                longName << "[float]";
                 break;
 
             case ValueType::STRING:
-                longName << "=[string]";
+                longName << "[string]";
                 break;
 
             default:
@@ -235,13 +241,13 @@ void ArgumentParser::printHelp(char* application) const {
 
         std::cout << option.str()
                   << std::left << std::setw(25) << longName.str()
-                  << argument.second->description << std::endl;
+                  << argument.second->description << "\n";
     }
 }
 
 void ArgumentParser::printVersion() const {
     if (!this->version.empty()) {
-        std::cout << this->version << std::endl;
+        std::cout << this->version << "\n";
     }
 }
 
