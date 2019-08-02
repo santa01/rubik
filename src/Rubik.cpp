@@ -199,6 +199,7 @@ void Rubik::setupScene() {
     int bufferWidth = 256;
     int bufferHeight = static_cast<int>(bufferWidth / camera->getAspectRatio());
     this->pickupBuffer = this->createFrameBuffer(bufferWidth, bufferHeight, GL_R32I);  // Render object IDs into texture
+    this->pickupBuffer->setAlphaBlending(false);  // Not supported for integer framebuffers
 
     auto pickupViewport = pickupBuffer->createViewport(0, 0, this->pickupBuffer->getWidth(), this->pickupBuffer->getHeight());
     pickupViewport->setCamera(pickupCamera);
