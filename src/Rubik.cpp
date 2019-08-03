@@ -204,7 +204,8 @@ void Rubik::setupScene() {
     auto pickupViewport = pickupBuffer->createViewport(0, 0, this->pickupBuffer->getWidth(), this->pickupBuffer->getHeight());
     pickupViewport->setCamera(pickupCamera);
 
-    Graphene::GetRenderManager().setShader(Graphene::RenderStep::BUFFER, std::make_shared<Graphene::Shader>("shaders/object_pickup.shader"));
+    auto pickupShader = objectManager.createShader("shaders/object_pickup.shader");
+    Graphene::GetRenderManager().setShader(Graphene::RenderStep::BUFFER, pickupShader);
 }
 
 void Rubik::setupUI() {
