@@ -33,11 +33,12 @@ int main(int argc, char** argv) {
     arguments.addArgument('f', "fov", "camera field of view", Rubik::ValueType::FLOAT);
     arguments.addArgument('h', "height", "viewport height", Rubik::ValueType::INT);
     arguments.addArgument('w', "width", "viewport width", Rubik::ValueType::INT);
-    arguments.addArgument('S', "samples", "MSAA samples", Rubik::ValueType::INT);
+    arguments.addArgument('s', "samples", "MSAA samples", Rubik::ValueType::INT);
     arguments.addArgument('F', "fps", "maximum fps limit", Rubik::ValueType::FLOAT);
     arguments.addArgument('v', "vsync", "vertical sync", Rubik::ValueType::BOOL);
     arguments.addArgument('d', "debug", "debug logging", Rubik::ValueType::BOOL);
-    arguments.addArgument('s', "shuffles", "initial cube shuffles", Rubik::ValueType::INT);
+    arguments.addArgument('D', "data", "game data directory", Rubik::ValueType::STRING);
+    arguments.addArgument('S', "shuffles", "initial cube shuffles", Rubik::ValueType::INT);
 
     if (!arguments.parse(argc, argv)) {
         return EXIT_FAILURE;
@@ -55,6 +56,7 @@ int main(int argc, char** argv) {
     config.setMaxFps(arguments.isSet("fps") ? stof(arguments.getOption("fps")) : 30.0f);
     config.setVsync(arguments.isSet("vsync"));
     config.setDebug(arguments.isSet("debug"));
+    config.setDataDirectory(arguments.isSet("data") ? arguments.getOption("data") : RUBIK_DATADIR);
 
     Rubik::Rubik rubik;
     rubik.setShuffles(arguments.isSet("shuffles") ? stoi(arguments.getOption("shuffles")) : 20);
