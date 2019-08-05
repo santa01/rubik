@@ -261,7 +261,7 @@ void Rubik::updateScene() {
                 this->puzzle->setAnimationState(static_cast<AnimationState>(std::rand() % 4 + 1));
             }
 
-            this->puzzle->animate(this->getFrameTime());
+            this->puzzle->update(this->getFrameTime());
             break;
 
         case GameState::QUIT:

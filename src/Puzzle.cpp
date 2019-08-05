@@ -83,7 +83,7 @@ void Puzzle::shuffle(int times) {
     for (int i = 0; i < times; i++) {
         this->selectedCube = this->cubes[std::rand() % 3][std::rand() % 3][std::rand() % 3]->getId();
         this->state = static_cast<AnimationState>(std::rand() % 4 + 1);
-        this->animate(90.0f / this->rotationSpeed);
+        this->update(90.0f / this->rotationSpeed);
     }
 }
 
@@ -109,7 +109,7 @@ bool Puzzle::isSolved() {
     return solved;
 }
 
-void Puzzle::animate(float frameTime) {
+void Puzzle::update(float frameTime) {
     static int selectedCube = this->selectedCube;
     static AnimationState state = this->state;
 

@@ -48,7 +48,7 @@ public:
     void shuffle(int times);
     bool isSolved();
 
-    void animate(float frameTime);
+    void update(float frameTime);
 
 private:
     void rotateFacet(int row, int column, AnimationState state);
