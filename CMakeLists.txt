@@ -23,8 +23,6 @@
 cmake_minimum_required (VERSION 3.12)
 project (RUBIK)
 
-find_package (Freetype REQUIRED)
-
 find_path (GRAPHENE_INCLUDE_DIRS NAMES GrapheneApi.h HINTS ENV GRAPHENE_DIR PATH_SUFFIXES include)
 find_library (GRAPHENE_LIBRARIES NAMES graphene graphene-shared HINTS ENV GRAPHENE_DIR PATH_SUFFIXES lib)
 if (NOT GRAPHENE_INCLUDE_DIRS OR NOT GRAPHENE_LIBRARIES)
@@ -46,13 +44,13 @@ set (RUBIK_NAME Rubik)
 set (RUBIK_DESCRIPTION "Rubik's Cube game")
 set (RUBIK_VERSION 0.1.10)
 
-set (RUBIK_DATADIR ${CMAKE_INSTALL_PREFIX}/share/rubik CACHE PATH "Data directory")
+set (RUBIK_DATADIR ${CMAKE_INSTALL_PREFIX}/$<IF:$<BOOL:UNIX>,share/rubik,data> CACHE PATH "Data directory")
 
 set (RUBIK_EXECUTABLE rubik)
 set (RUBIK_RESOURCE_DIRS assets fonts shaders textures)
 
 file (GLOB_RECURSE RUBIK_SOURCES src/*.cpp)
-include_directories (src ${PROJECT_BINARY_DIR} ${GRAPHENE_INCLUDE_DIRS} ${FREETYPE_INCLUDE_DIRS} ${MATH_INCLUDE_DIRS} ${SIGNALS_INCLUDE_DIRS})
+include_directories (src ${PROJECT_BINARY_DIR} ${GRAPHENE_INCLUDE_DIRS} ${MATH_INCLUDE_DIRS} ${SIGNALS_INCLUDE_DIRS})
 
 add_executable (${RUBIK_EXECUTABLE} ${RUBIK_SOURCES})
 set_target_properties (${RUBIK_EXECUTABLE} PROPERTIES
@@ -65,7 +63,7 @@ target_compile_options (${RUBIK_EXECUTABLE} PUBLIC
     $<$<CXX_COMPILER_ID:MSVC>:/WX>
 )
 
-set (RUBIK_LINK_LIBRARIES ${GRAPHENE_LIBRARIES} ${FREETYPE_LIBRARIES} ${MATH_LIBRARIES})
+set (RUBIK_LINK_LIBRARIES ${GRAPHENE_LIBRARIES} ${MATH_LIBRARIES})
 target_link_libraries (${RUBIK_EXECUTABLE} ${RUBIK_LINK_LIBRARIES})
 
 configure_file (Config.h.in Config.h @ONLY)
