@@ -42,7 +42,7 @@ endif ()
 
 set (RUBIK_NAME Rubik)
 set (RUBIK_DESCRIPTION "Rubik's Cube game")
-set (RUBIK_VERSION 0.1.10)
+set (RUBIK_VERSION 0.2.0)
 
 set (RUBIK_DATADIR ${CMAKE_INSTALL_PREFIX}/$<IF:$<BOOL:UNIX>,share/rubik,data> CACHE PATH "Data directory")
 
