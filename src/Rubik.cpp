@@ -144,18 +144,21 @@ void Rubik::setupScene() {
     /* Setup scene */
 
     auto scene = this->createScene();
-    auto sceneRoot = scene->getRootNode();
+    scene->setAmbientEnergy(0.2f);
 
     auto player = scene->createNode();
     auto cube = scene->createNode();
     this->puzzle = std::make_shared<Puzzle>();
 
+    auto sceneRoot = scene->getRootNode();
     sceneRoot->attachNode(player);
     sceneRoot->attachNode(cube);
 
     /* Populate scene with objects */
 
     auto& objectManager = Graphene::GetObjectManager();
+    auto& renderManager = Graphene::GetRenderManager();
+    renderManager.setLightPass(true);
 
     auto background = objectManager.createEntity("assets/background.entity");
     background->translate(0.0f, 0.0f, 5.0f);
@@ -164,9 +167,12 @@ void Rubik::setupScene() {
 
     auto camera = objectManager.createCamera(Graphene::ProjectionType::PERSPECTIVE);
     auto pickupCamera = objectManager.createCamera(Graphene::ProjectionType::PERSPECTIVE);
+    auto light = objectManager.createLight(Graphene::LightType::DIRECTED);
+
     player->attachObject(camera);
     player->attachObject(pickupCamera);
-    player->translate(0.0f, 0.0f, -5.0f);
+    player->attachObject(light);
+    player->translate(0.25f, -0.25f, -4.5f);
 
     for (int i = -1; i <= 1; i++) {
         for (int j = -1; j <= 1; j++) {
@@ -184,7 +190,7 @@ void Rubik::setupScene() {
         }
     }
 
-    cube->rotate(Math::Vec3::UNIT_X, -25.0f);
+    cube->rotate(Math::Vec3::UNIT_X, -30.0f);
     cube->rotate(Math::Vec3::UNIT_Y, -30.0f);
     this->puzzle->shuffle(this->shuffles);
 
