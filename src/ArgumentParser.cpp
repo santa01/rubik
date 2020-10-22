@@ -83,6 +83,8 @@ bool ArgumentParser::addArgument(const std::string& longName, const std::string&
     auto argument = std::shared_ptr<Argument>(new Argument());
     argument->type = type;
     argument->description = description;
+    argument->shortOption = '\0';
+    argument->isSet = false;
 
     this->arguments[longName] = argument;
     return true;

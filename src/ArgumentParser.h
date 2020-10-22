@@ -63,8 +63,8 @@ private:
         ValueType type;
         std::string value;
         std::string description;
-        char shortOption = '\0';
-        bool isSet = false;
+        char shortOption;
+        bool isSet;
     } Argument;
 
     std::unordered_map<std::string, std::shared_ptr<Argument>> arguments;
