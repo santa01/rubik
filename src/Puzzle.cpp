@@ -24,6 +24,7 @@
 #include <SceneNode.h>
 #include <Logger.h>
 #include <algorithm>
+#include <stdexcept>
 #include <cstdlib>
 
 namespace Rubik {
