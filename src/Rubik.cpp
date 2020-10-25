@@ -126,8 +126,15 @@ void Rubik::onKeyboardKey(Graphene::KeyboardKey key, bool state) {
 }
 
 void Rubik::onSetup() {
+    auto pickupShader = Graphene::GetObjectManager().createShader("shaders/object_pickup.shader");
+    Graphene::GetRenderManager().setShader(Graphene::RenderStep::BUFFER, pickupShader);
+
     this->setupScene();
     this->setupUI();
+}
+
+void Rubik::onTeardown() {
+    Graphene::GetRenderManager().setShader(Graphene::RenderStep::BUFFER, nullptr);
 }
 
 void Rubik::onIdle() {
@@ -209,9 +216,6 @@ void Rubik::setupScene() {
 
     auto pickupViewport = pickupBuffer->createViewport(0, 0, this->pickupBuffer->getWidth(), this->pickupBuffer->getHeight());
     pickupViewport->setCamera(pickupCamera);
-
-    auto pickupShader = objectManager.createShader("shaders/object_pickup.shader");
-    Graphene::GetRenderManager().setShader(Graphene::RenderStep::BUFFER, pickupShader);
 }
 
 void Rubik::setupUI() {
