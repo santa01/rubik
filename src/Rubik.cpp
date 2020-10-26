@@ -197,8 +197,8 @@ void Rubik::setupScene() {
         }
     }
 
-    cube->rotate(Math::Vec3::UNIT_X, -30.0f);
-    cube->rotate(Math::Vec3::UNIT_Y, -30.0f);
+    cube->roll(-30.0f);
+    cube->yaw(-30.0f);
     this->puzzle->shuffle(this->shuffles);
 
     /* Update default viewport with camera */

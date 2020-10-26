@@ -23,6 +23,7 @@
 #include <Puzzle.h>
 #include <SceneNode.h>
 #include <Logger.h>
+#include <Vec3.h>
 #include <algorithm>
 #include <stdexcept>
 #include <cstdlib>
@@ -205,7 +206,7 @@ void Puzzle::rotateEntities(int row, int column, float angle, AnimationState sta
             for (int j = 0; j < 3; j++) {
                 for (int k = 0; k < 3; k++) {
                     // Rotate the parent SceneNode
-                    this->cubes[row][j][k]->getParent()->roll(angle);
+                    this->cubes[row][j][k]->getParent()->rotate(Math::Vec3::UNIT_X, angle);
                 }
             }
             break;
@@ -215,7 +216,7 @@ void Puzzle::rotateEntities(int row, int column, float angle, AnimationState sta
             for (int i = 0; i < 3; i++) {
                 for (int k = 0; k < 3; k++) {
                     // Rotate the parent SceneNode
-                    this->cubes[i][column][k]->getParent()->yaw(angle);
+                    this->cubes[i][column][k]->getParent()->rotate(Math::Vec3::UNIT_Y, angle);
                 }
             }
             break;
