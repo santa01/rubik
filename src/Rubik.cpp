@@ -126,8 +126,16 @@ void Rubik::onKeyboardKey(Graphene::KeyboardKey key, bool state) {
 }
 
 void Rubik::onSetup() {
-    auto pickupShader = Graphene::GetObjectManager().createShader("shaders/object_pickup.shader");
-    Graphene::GetRenderManager().setShader(Graphene::RenderStep::BUFFER, pickupShader);
+    auto& renderManager = Graphene::GetRenderManager();
+    auto& objectManager = Graphene::GetObjectManager();
+
+    renderManager.setShader(Graphene::RenderStep::BUFFER, objectManager.createShader("shaders/object_pickup.shader"));
+    renderManager.setRenderCallback(Graphene::RenderStep::BUFFER, [](const std::shared_ptr<Graphene::Object> object) {
+        auto& renderManager = Graphene::GetRenderManager();
+
+        auto shader = renderManager.getShader(renderManager.getRenderStep());
+        shader->setUniform("objectId", object->getId());
+    });
 
     this->setupScene();
     this->setupUI();
