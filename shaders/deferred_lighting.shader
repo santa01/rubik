@@ -4,6 +4,7 @@
 #ifdef TYPE_VERTEX
 
 layout(location = 0) in vec3 vertexPosition;
+layout(location = 1) in vec3 vertexNormal;   // Unused
 layout(location = 2) in vec2 vertexUV;
 
 smooth out vec2 fragmentUV;
@@ -68,17 +69,22 @@ void main() {
     float highlight = pow(dot(-cameraDirection, reflectedDirection), specularHardness);
     vec3 specularColor = specularSample.rgb * (highlight > 0.0f ? highlight : 0.0f) * specularIntensity;
 
-    float falloff = pow(light.falloff, 2);
-    float distance = pow(distance(lightPosition, position), 2);
-    float attenuation = (light.type == TYPE_DIRECTED) ? 1.0f : (falloff / (falloff + distance));
+    float lightAttenuation = 1.0f;
+    if (light.type != TYPE_DIRECTED) {
+        float falloff = pow(light.falloff, 2);
+        float distance = pow(distance(lightPosition, position), 2);
+        lightAttenuation = falloff / (falloff + distance);
+    }
 
-    float softBorder = cos(radians(light.angle));
-    float hardBorder = cos(radians(90.0f - light.angle * light.blend));
-    float lightAngle = dot(direction, normalize(position - lightPosition));
-    float borderIntensity = clamp((lightAngle - softBorder) / hardBorder - 1.0f, 0.0f, 1.0f);
-    float lightClip = (light.type == TYPE_SPOT) ? borderIntensity : 1.0f;
+    float borderAttenuation = 1.0f;
+    if (light.type == TYPE_SPOT) {
+        float softBorder = cos(radians(light.angle) / 2.0);
+        float hardBorder = cos(radians(light.angle * (1.0 - light.blend)) / 2.0);
+        float lightAngle = dot(direction, normalize(position - lightPosition));
+        borderAttenuation = clamp((lightAngle - softBorder) / (hardBorder - softBorder), 0.0f, 1.0f);
+    }
 
-    outputColor = vec4(diffuseColor + specularColor, 0.0f) * light.energy * attenuation * lightClip;
+    outputColor = vec4(diffuseColor + specularColor, 0.0f) * light.energy * lightAttenuation * borderAttenuation;
 }
 
 #endif
