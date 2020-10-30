@@ -141,10 +141,6 @@ void Rubik::onSetup() {
     this->setupUI();
 }
 
-void Rubik::onTeardown() {
-    Graphene::GetRenderManager().setRenderShader(Graphene::RenderStep::BUFFER, nullptr);
-}
-
 void Rubik::onIdle() {
     this->updateScene();
     this->updateUI();

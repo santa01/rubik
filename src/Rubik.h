@@ -45,7 +45,6 @@ private:
     void onMouseMotion(int x, int y);
     void onKeyboardKey(Graphene::KeyboardKey key, bool state);
     void onSetup();
-    void onTeardown();
     void onIdle();
 
     void setupScene();
