@@ -129,12 +129,12 @@ void Rubik::onSetup() {
     auto& renderManager = Graphene::GetRenderManager();
     auto& objectManager = Graphene::GetObjectManager();
 
-    renderManager.setShader(Graphene::RenderStep::BUFFER, objectManager.createShader("shaders/object_pickup.shader"));
+    renderManager.setRenderShader(Graphene::RenderStep::BUFFER, objectManager.createShader("shaders/object_pickup.shader"));
     renderManager.setRenderCallback(Graphene::RenderStep::BUFFER, [](const std::shared_ptr<Graphene::Object> object) {
         auto& renderManager = Graphene::GetRenderManager();
 
-        auto shader = renderManager.getShader(renderManager.getRenderStep());
-        shader->setUniform("objectId", object->getId());
+        auto renderShader = renderManager.getRenderShader(renderManager.getRenderStep());
+        renderShader->setUniform("objectId", object->getId());
     });
 
     this->setupScene();
@@ -142,7 +142,7 @@ void Rubik::onSetup() {
 }
 
 void Rubik::onTeardown() {
-    Graphene::GetRenderManager().setShader(Graphene::RenderStep::BUFFER, nullptr);
+    Graphene::GetRenderManager().setRenderShader(Graphene::RenderStep::BUFFER, nullptr);
 }
 
 void Rubik::onIdle() {
