@@ -177,11 +177,9 @@ void Rubik::setupScene() {
     sceneRoot->attachObject(background);
 
     auto camera = objectManager.createCamera(Graphene::ProjectionType::PERSPECTIVE);
-    auto pickupCamera = objectManager.createCamera(Graphene::ProjectionType::PERSPECTIVE);
     auto light = objectManager.createLight(Graphene::LightType::DIRECTED);
 
     player->attachObject(camera);
-    player->attachObject(pickupCamera);
     player->attachObject(light);
     player->translate(0.25f, -0.25f, -4.5f);
 
@@ -215,7 +213,7 @@ void Rubik::setupScene() {
 
     this->pickupBuffer = this->createFrameBuffer(window->getWidth() / 2, window->getHeight() / 2, GL_R32I);
     auto pickupViewport = pickupBuffer->createViewport(0, 0, this->pickupBuffer->getWidth(), this->pickupBuffer->getHeight());
-    pickupViewport->setCamera(pickupCamera);
+    pickupViewport->setCamera(camera);
 }
 
 void Rubik::setupUI() {
