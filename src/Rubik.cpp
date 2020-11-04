@@ -23,6 +23,7 @@
 #include <Rubik.h>
 #include <ObjectManager.h>
 #include <RenderManager.h>
+#include <RenderState.h>
 #include <Window.h>
 #include <OpenGL.h>
 #include <Shader.h>
@@ -126,16 +127,13 @@ void Rubik::onKeyboardKey(Graphene::KeyboardKey key, bool state) {
 }
 
 void Rubik::onSetup() {
-    auto& renderManager = Graphene::GetRenderManager();
-    auto& objectManager = Graphene::GetObjectManager();
-
-    renderManager.setRenderShader(Graphene::RenderStep::BUFFER, objectManager.createShader("shaders/object_pickup.shader"));
-    renderManager.setRenderCallback(Graphene::RenderStep::BUFFER, [](const std::shared_ptr<Graphene::Object> object) {
-        auto& renderManager = Graphene::GetRenderManager();
-
-        auto renderShader = renderManager.getRenderShader(renderManager.getRenderStep());
-        renderShader->setUniform("objectId", object->getId());
+    Graphene::RenderCallback renderCallback([](Graphene::RenderState* renderState, const std::shared_ptr<Graphene::Object> object) {
+        renderState->getShader()->setUniform("objectId", object->getId());
     });
+
+    auto renderState = Graphene::GetRenderManager().getRenderState(Graphene::RenderStateType::BUFFER);
+    renderState->setShader(Graphene::GetObjectManager().createShader("shaders/object_pickup.shader"));
+    renderState->setCallback(renderCallback);
 
     this->setupScene();
     this->setupUI();
