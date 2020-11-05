@@ -42,10 +42,10 @@ public:
     void setShuffles(int shuffles);
 
 private:
-    void onMouseMotion(int x, int y);
-    void onKeyboardKey(Graphene::KeyboardKey key, bool state);
-    void onSetup();
-    void onIdle();
+    void onMouseMotion(int x, int y) override;
+    void onKeyboardKey(Graphene::KeyboardKey key, bool state) override;
+    void onSetup() override;
+    void onIdle() override;
 
     void setupScene();
     void setupUI();
