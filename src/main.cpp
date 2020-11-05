@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
     config.setHeight(arguments.isSet("height") ? stoi(arguments.getOption("height")) : 480);
     config.setWidth(arguments.isSet("width") ? stoi(arguments.getOption("width")) : 640);
     config.setSamples(arguments.isSet("samples") ? stoi(arguments.getOption("samples")) : 0);
-    config.setMaxFps(arguments.isSet("fps") ? stof(arguments.getOption("fps")) : 30.0f);
+    config.setMaxFps(arguments.isSet("fps") ? stof(arguments.getOption("fps")) : 0.0f);
     config.setVsync(arguments.isSet("vsync"));
     config.setDebug(arguments.isSet("debug"));
     config.setDataDirectory(arguments.isSet("data") ? arguments.getOption("data") : RUBIK_DATADIR);
