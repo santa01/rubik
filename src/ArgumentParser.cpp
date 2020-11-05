@@ -63,7 +63,7 @@ bool ArgumentParser::addArgument(char name, const std::string& longName, const s
         return false;
     }
 
-    auto argument = this->arguments[longName];
+    auto& argument = this->arguments[longName];
     argument->shortOption = name;
 
     this->aliases[name] = longName;
@@ -80,7 +80,7 @@ bool ArgumentParser::addArgument(const std::string& longName, const std::string&
         return false;
     }
 
-    auto argument = std::shared_ptr<Argument>(new Argument());
+    auto argument = std::make_shared<Argument>();
     argument->type = type;
     argument->description = description;
     argument->shortOption = '\0';
@@ -111,7 +111,7 @@ bool ArgumentParser::parse(int argc, char** argv) {
             longName = this->aliases.at(name);
         }
 
-        std::shared_ptr<Argument> argument = this->arguments.at(longName);
+        auto& argument = this->arguments.at(longName);
         if (argument->type == ValueType::BOOL) {
             argument->isSet = true;
             continue;
@@ -148,8 +148,7 @@ bool ArgumentParser::isSet(char name) const {
 }
 
 bool ArgumentParser::isSet(const std::string& longName) const {
-    auto argument = this->arguments.at(longName);
-    return argument->isSet;
+    return this->arguments.at(longName)->isSet;
 }
 
 std::string ArgumentParser::getOption(char name) const {
@@ -157,8 +156,7 @@ std::string ArgumentParser::getOption(char name) const {
 }
 
 std::string ArgumentParser::getOption(const std::string& longName) const {
-    auto argument = this->arguments.at(longName);
-    return argument->value;
+    return this->arguments.at(longName)->value;
 }
 
 ArgumentParser::ArgumentType ArgumentParser::prepareArgument(const std::string& option, char& name, std::string& longName) {

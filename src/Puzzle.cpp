@@ -54,7 +54,7 @@ void Puzzle::setRotationSpeed(float rotationSpeed) {
     this->rotationSpeed = rotationSpeed;
 }
 
-void Puzzle::attachCube(const std::shared_ptr<Graphene::Entity> cube) {
+void Puzzle::attachCube(const std::shared_ptr<Graphene::Entity>& cube) {
     if (this->attachedCubes >= 27) {
         throw std::runtime_error(Graphene::LogFormat("attachCube()"));
     }

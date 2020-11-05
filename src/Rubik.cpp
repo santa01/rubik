@@ -127,11 +127,11 @@ void Rubik::onKeyboardKey(Graphene::KeyboardKey key, bool state) {
 }
 
 void Rubik::onSetup() {
-    Graphene::RenderCallback renderCallback([](Graphene::RenderState* renderState, const std::shared_ptr<Graphene::Object> object) {
+    Graphene::RenderCallback renderCallback([](Graphene::RenderState* renderState, const std::shared_ptr<Graphene::Object>& object) {
         renderState->getShader()->setUniform("objectId", object->getId());
     });
 
-    auto renderState = Graphene::GetRenderManager().getRenderState(Graphene::RenderStateType::BUFFER);
+    auto& renderState = Graphene::GetRenderManager().getRenderState(Graphene::RenderStateType::BUFFER);
     renderState->setShader(Graphene::GetObjectManager().createShader("shaders/object_pickup.shader"));
     renderState->setCallback(renderCallback);
 
@@ -152,15 +152,14 @@ void Rubik::onIdle() {
 void Rubik::setupScene() {
     /* Setup scene */
 
-    auto scene = this->createScene();
+    auto& scene = this->createScene();
     scene->setAmbientEnergy(0.2f);
 
-    auto player = scene->createNode();
+    auto& player = scene->getPlayer();
     auto cube = scene->createNode();
     this->puzzle = std::make_shared<Puzzle>();
 
-    auto sceneRoot = scene->getRootNode();
-    sceneRoot->attachNode(player);
+    auto& sceneRoot = scene->getRootNode();
     sceneRoot->attachNode(cube);
 
     /* Populate scene with objects */
@@ -203,22 +202,22 @@ void Rubik::setupScene() {
 
     /* Update default viewport with camera */
 
-    auto window = this->getWindow();
-    auto viewport = window->createViewport(0, 0, window->getWidth(), window->getHeight());
+    auto& window = this->getWindow();
+    auto& viewport = window->createViewport(0, 0, window->getWidth(), window->getHeight());
     viewport->setCamera(camera);
 
     /* Create framebuffer for object ID rendering and picking */
 
     this->pickupBuffer = this->createFrameBuffer(window->getWidth() / 2, window->getHeight() / 2, GL_R32I);
-    auto pickupViewport = pickupBuffer->createViewport(0, 0, this->pickupBuffer->getWidth(), this->pickupBuffer->getHeight());
+    auto& pickupViewport = pickupBuffer->createViewport(0, 0, this->pickupBuffer->getWidth(), this->pickupBuffer->getHeight());
     pickupViewport->setCamera(camera);
 }
 
 void Rubik::setupUI() {
     /* Setup scene */
 
-    auto uiScene = this->createScene();
-    auto uiRootNode = uiScene->getRootNode();
+    auto& uiScene = this->createScene();
+    auto& uiRootNode = uiScene->getRootNode();
 
     /* Populate scene with objects */
 
@@ -239,7 +238,7 @@ void Rubik::setupUI() {
 
     /* Arrange UI elements */
 
-    auto window = this->getWindow();
+    auto& window = this->getWindow();
 
     auto uiLayout = std::make_shared<Graphene::Layout>();
     uiLayout->addComponent(this->timeLabel, 10, window->getHeight() - 20);
@@ -248,7 +247,7 @@ void Rubik::setupUI() {
 
     /* Update viewport with camera */
 
-    auto overlay = window->createOverlay(0, 0, window->getWidth(), window->getHeight());
+    auto& overlay = window->createOverlay(0, 0, window->getWidth(), window->getHeight());
     overlay->setCamera(camera);
     overlay->setLayout(uiLayout);
 }
