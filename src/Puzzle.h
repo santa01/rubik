@@ -42,7 +42,7 @@ public:
     float getRotationSpeed() const;
     void setRotationSpeed(float rotationSpeed);
 
-    void attachCube(const std::shared_ptr<Graphene::Entity>& cube);
+    void addCube(const std::shared_ptr<Graphene::Entity>& cube);
     std::tuple<int, int, int> getCubePosition(int objectId) const;
 
     void shuffle(int times);

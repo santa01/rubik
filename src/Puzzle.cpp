@@ -21,7 +21,7 @@
  */
 
 #include <Puzzle.h>
-#include <SceneNode.h>
+#include <ObjectGroup.h>
 #include <Logger.h>
 #include <Vec3.h>
 #include <algorithm>
@@ -54,7 +54,7 @@ void Puzzle::setRotationSpeed(float rotationSpeed) {
     this->rotationSpeed = rotationSpeed;
 }
 
-void Puzzle::attachCube(const std::shared_ptr<Graphene::Entity>& cube) {
+void Puzzle::addCube(const std::shared_ptr<Graphene::Entity>& cube) {
     if (this->attachedCubes >= 27) {
         throw std::runtime_error(Graphene::LogFormat("attachCube()"));
     }
@@ -205,7 +205,7 @@ void Puzzle::rotateEntities(int row, int column, float angle, AnimationState sta
         case AnimationState::UP_ROTATION:
             for (int j = 0; j < 3; j++) {
                 for (int k = 0; k < 3; k++) {
-                    // Rotate the parent SceneNode
+                    // Rotate the parent Graphene::ObjectGroup
                     this->cubes[row][j][k]->getParent()->rotate(Math::Vec3::UNIT_X, angle);
                 }
             }
@@ -215,7 +215,7 @@ void Puzzle::rotateEntities(int row, int column, float angle, AnimationState sta
         case AnimationState::RIGHT_ROTATION:
             for (int i = 0; i < 3; i++) {
                 for (int k = 0; k < 3; k++) {
-                    // Rotate the parent SceneNode
+                    // Rotate the parent Graphene::ObjectGroup
                     this->cubes[i][column][k]->getParent()->rotate(Math::Vec3::UNIT_Y, angle);
                 }
             }

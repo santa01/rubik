@@ -28,6 +28,7 @@
 #include <OpenGL.h>
 #include <Shader.h>
 #include <Entity.h>
+#include <ObjectGroup.h>
 #include <Font.h>
 #include <Layout.h>
 #include <sstream>
@@ -155,12 +156,12 @@ void Rubik::setupScene() {
     auto& scene = this->createScene();
     scene->setAmbientEnergy(0.2f);
 
+    auto& sceneRoot = scene->getRoot();
     auto& player = scene->getPlayer();
-    auto cube = scene->createNode();
     this->puzzle = std::make_shared<Puzzle>();
 
-    auto& sceneRoot = scene->getRootNode();
-    sceneRoot->attachNode(cube);
+    auto cube = std::make_shared<Graphene::ObjectGroup>();
+    sceneRoot->addObject(cube);
 
     /* Populate scene with objects */
 
@@ -171,26 +172,26 @@ void Rubik::setupScene() {
     auto background = objectManager.createEntity("assets/background.entity");
     background->translate(0.0f, 0.0f, 5.0f);
     background->scale(25.0f, 25.0f, 1.0f);
-    sceneRoot->attachObject(background);
+    sceneRoot->addObject(background);
 
     auto camera = objectManager.createCamera(Graphene::ProjectionType::PERSPECTIVE);
     auto light = objectManager.createLight(Graphene::LightType::DIRECTED);
 
-    player->attachObject(camera);
-    player->attachObject(light);
+    player->addObject(camera);
+    player->addObject(light);
     player->translate(0.25f, -0.25f, -4.5f);
 
     for (int i = -1; i <= 1; i++) {
         for (int j = -1; j <= 1; j++) {
             for (int k = -1; k <= 1; k++) {
-                auto cubepart = scene->createNode();
-                cube->attachNode(cubepart);
+                auto cubepart = std::make_shared<Graphene::ObjectGroup>();
+                cube->addObject(cubepart);
 
                 auto entity = objectManager.createEntity("assets/cubepart.entity");
                 entity->translate(static_cast<float>(i), static_cast<float>(j), static_cast<float>(k));
-                cubepart->attachObject(entity);
+                cubepart->addObject(entity);
 
-                this->puzzle->attachCube(entity);
+                this->puzzle->addCube(entity);
                 this->puzzleObjects.push_back(entity->getId());
             }
         }
@@ -217,7 +218,7 @@ void Rubik::setupUI() {
     /* Setup scene */
 
     auto& uiScene = this->createScene();
-    auto& uiRootNode = uiScene->getRootNode();
+    auto& uiRoot = uiScene->getRoot();
 
     /* Populate scene with objects */
 
@@ -231,10 +232,10 @@ void Rubik::setupUI() {
     this->movesLabel = std::make_shared<Graphene::Label>(200, 20, font);
     this->promptLabel = std::make_shared<Graphene::Label>(200, 20, font);
 
-    uiRootNode->attachObject(camera);
-    uiRootNode->attachObject(this->timeLabel);
-    uiRootNode->attachObject(this->movesLabel);
-    uiRootNode->attachObject(this->promptLabel);
+    uiRoot->addObject(camera);
+    uiRoot->addObject(this->timeLabel);
+    uiRoot->addObject(this->movesLabel);
+    uiRoot->addObject(this->promptLabel);
 
     /* Arrange UI elements */
 
