@@ -128,13 +128,13 @@ void Rubik::onKeyboardKey(Graphene::KeyboardKey key, bool state) {
 }
 
 void Rubik::onSetup() {
-    Graphene::RenderCallback renderCallback([](Graphene::RenderState* renderState, const std::shared_ptr<Graphene::Object>& object) {
+    Graphene::RenderStateCallback callback([](Graphene::RenderState* renderState, const std::shared_ptr<Graphene::Object>& object) {
         renderState->getShader()->setUniform("objectId", object->getId());
     });
 
-    auto& renderState = Graphene::GetRenderManager().getRenderState(Graphene::RenderStateType::BUFFER);
+    auto& renderState = Graphene::GetRenderManager().getRenderState(Graphene::RenderBuffer::ID);
     renderState->setShader(Graphene::GetObjectManager().createShader("shaders/object_pickup.shader"));
-    renderState->setCallback(renderCallback);
+    renderState->setCallback(callback);
 
     this->setupScene();
     this->setupUI();
