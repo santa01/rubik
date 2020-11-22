@@ -27,7 +27,7 @@
 #include <Engine.h>
 #include <Input.h>
 #include <FrameBuffer.h>
-#include <Label.h>
+#include <Entity.h>
 #include <Vec3.h>
 #include <vector>
 #include <memory>
@@ -55,9 +55,9 @@ private:
     void rotateCube(int objectId, const Math::Vec3& direction);
 
     std::shared_ptr<Puzzle> puzzle;
-    std::shared_ptr<Graphene::Label> timeLabel;
-    std::shared_ptr<Graphene::Label> movesLabel;
-    std::shared_ptr<Graphene::Label> promptLabel;
+    std::shared_ptr<Graphene::Entity> timeLabel;
+    std::shared_ptr<Graphene::Entity> movesLabel;
+    std::shared_ptr<Graphene::Entity> promptLabel;
 
     std::vector<int> puzzleObjects;
     std::shared_ptr<Graphene::FrameBuffer> pickupBuffer;
