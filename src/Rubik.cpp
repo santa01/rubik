@@ -226,9 +226,9 @@ void Rubik::setupUI() {
     camera->setNearPlane(-1.0f);
     camera->setFarPlane(1.0f);
 
-    this->timeLabel = objectManager.createLabel(200, 20, "fonts/dejavu-sans.ttf", 14);
-    this->movesLabel = objectManager.createLabel(200, 20, "fonts/dejavu-sans.ttf", 14);
-    this->promptLabel = objectManager.createLabel(200, 20, "fonts/dejavu-sans.ttf", 14);
+    this->timeLabel = objectManager.createLabel(150, 20, "fonts/dejavu-sans.ttf", 14);
+    this->movesLabel = objectManager.createLabel(150, 20, "fonts/dejavu-sans.ttf", 14);
+    this->promptLabel = objectManager.createLabel(150, 20, "fonts/dejavu-sans.ttf", 14);
 
     uiRoot->addObject(camera);
     uiRoot->addObject(this->timeLabel);
@@ -240,9 +240,9 @@ void Rubik::setupUI() {
     auto& window = this->getWindow();
 
     auto uiLayout = std::make_shared<Graphene::Layout>();
-    uiLayout->addComponent(this->timeLabel, 10, window->getHeight() - 20);
-    uiLayout->addComponent(this->movesLabel, 10, window->getHeight() - 40);
-    uiLayout->addComponent(this->promptLabel, 10, 10);
+    uiLayout->addComponent(this->timeLabel, (window->getWidth() - 110) / 2, window->getHeight() - 20);
+    uiLayout->addComponent(this->movesLabel, (window->getWidth() - 70) / 2, window->getHeight() - 40);
+    uiLayout->addComponent(this->promptLabel, (window->getWidth() - 90) / 2, 10);
 
     /* Update viewport with camera */
 
@@ -310,17 +310,17 @@ void Rubik::updateUI() {
 
     switch (this->state) {
         case GameState::FINISHED:
-            this->promptLabel->getComponent<Graphene::TextComponent>()->setText(L"Done! New game? Y/N");
+            this->promptLabel->getComponent<Graphene::TextComponent>()->setText(L"New game? Y/N");
             this->promptLabel->setVisible(true);
             break;
 
         case GameState::PAUSED:
-            this->promptLabel->getComponent<Graphene::TextComponent>()->setText(L"Paused");
+            this->promptLabel->getComponent<Graphene::TextComponent>()->setText(L"       Paused");
             this->promptLabel->setVisible(true);
             break;
 
         case GameState::QUIT:
-            this->promptLabel->getComponent<Graphene::TextComponent>()->setText(L"Quit? Y/N");
+            this->promptLabel->getComponent<Graphene::TextComponent>()->setText(L"    Quit? Y/N");
             this->promptLabel->setVisible(true);
             break;
 
