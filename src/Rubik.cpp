@@ -223,12 +223,12 @@ void Rubik::setupUI() {
 
     auto& objectManager = Graphene::GetObjectManager();
     auto camera = objectManager.createCamera(Graphene::ProjectionType::ORTHOGRAPHIC);
-    camera->setNearPlane(-1.0f);
-    camera->setFarPlane(1.0f);
+    camera->setNearPlane(-1.0f);  // NDC for 1:1 scale
+    camera->setFarPlane(1.0f);  // NDC for 1:1 scale
 
-    this->timeLabel = objectManager.createLabel(150, 20, "fonts/dejavu-sans.ttf", 14);
-    this->movesLabel = objectManager.createLabel(150, 20, "fonts/dejavu-sans.ttf", 14);
-    this->promptLabel = objectManager.createLabel(150, 20, "fonts/dejavu-sans.ttf", 14);
+    this->timeLabel = objectManager.createLabel(150, 20, "fonts/dejavu-sans.ttf", 12);
+    this->movesLabel = objectManager.createLabel(150, 20, "fonts/dejavu-sans.ttf", 12);
+    this->promptLabel = objectManager.createLabel(150, 20, "fonts/dejavu-sans.ttf", 12);
 
     uiRoot->addObject(camera);
     uiRoot->addObject(this->timeLabel);
@@ -240,9 +240,9 @@ void Rubik::setupUI() {
     auto& window = this->getWindow();
 
     auto uiLayout = std::make_shared<Graphene::Layout>();
-    uiLayout->addComponent(this->timeLabel, (window->getWidth() - 110) / 2, window->getHeight() - 20);
-    uiLayout->addComponent(this->movesLabel, (window->getWidth() - 70) / 2, window->getHeight() - 40);
-    uiLayout->addComponent(this->promptLabel, (window->getWidth() - 90) / 2, 10);
+    uiLayout->addComponent(this->timeLabel, (window->getWidth() - 120) / 2, window->getHeight() - 25);
+    uiLayout->addComponent(this->movesLabel, (window->getWidth() - 70) / 2, window->getHeight() - 50);
+    uiLayout->addComponent(this->promptLabel, (window->getWidth() - 110) / 2, 10);
 
     /* Update viewport with camera */
 
