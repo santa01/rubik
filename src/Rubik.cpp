@@ -240,9 +240,9 @@ void Rubik::setupUI() {
     auto& window = this->getWindow();
 
     auto uiLayout = std::make_shared<Graphene::Layout>();
-    uiLayout->addComponent(this->timeLabel, (window->getWidth() - 120) / 2, window->getHeight() - 25);
-    uiLayout->addComponent(this->movesLabel, (window->getWidth() - 70) / 2, window->getHeight() - 50);
-    uiLayout->addComponent(this->promptLabel, (window->getWidth() - 110) / 2, 10);
+    uiLayout->addEntity(this->timeLabel, (window->getWidth() - 120) / 2, window->getHeight() - 25);
+    uiLayout->addEntity(this->movesLabel, (window->getWidth() - 70) / 2, window->getHeight() - 50);
+    uiLayout->addEntity(this->promptLabel, (window->getWidth() - 110) / 2, 10);
 
     /* Update viewport with camera */
 
